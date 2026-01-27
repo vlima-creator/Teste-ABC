@@ -252,14 +252,52 @@ def render_shopee_top_rejection_rate(df_export: pd.DataFrame):
     
     # Adicionar dica de ação
     st.markdown("""
-    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin-top: 16px; border-radius: 4px;">
-        <strong>💡 Ação Recomendada:</strong> Produtos com alta taxa de rejeição precisam de otimização urgente:
-        <ul style="margin: 8px 0 0 20px;">
-            <li>Melhorar qualidade das fotos (zoom, fundo limpo, uso real)</li>
-            <li>Revisar título e descrição (clareza, benefícios, FAQ)</li>
-            <li>Ajustar preço ou destacar diferenciais</li>
-            <li>Verificar avaliações negativas e responder</li>
-        </ul>
+    <div style="
+        background: #fff8e1;
+        border: 1px solid #ffd54f;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    ">
+        <div style="
+            background: #ffd54f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+        ">
+            💡
+        </div>
+        <div style="flex: 1;">
+            <div style="
+                font-weight: 600;
+                font-size: 16px;
+                color: #1a1a1a;
+                margin-bottom: 8px;
+            ">
+                Ação Recomendada
+            </div>
+            <div style="
+                font-size: 14px;
+                color: #333333;
+                line-height: 1.6;
+            ">
+                Produtos com alta taxa de rejeição precisam de otimização urgente:
+                <ul style="margin: 8px 0 0 20px; padding-left: 0;">
+                    <li style="margin-bottom: 4px;">Melhorar qualidade das fotos (zoom, fundo limpo, uso real)</li>
+                    <li style="margin-bottom: 4px;">Revisar título e descrição (clareza, benefícios, FAQ)</li>
+                    <li style="margin-bottom: 4px;">Ajustar preço ou destacar diferenciais</li>
+                    <li style="margin-bottom: 4px;">Verificar avaliações negativas e responder</li>
+                </ul>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
