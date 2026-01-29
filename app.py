@@ -1325,43 +1325,29 @@ def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic
     st.markdown(html, unsafe_allow_html=True)
 
 def render_abc_quadrant(df_abc: pd.DataFrame, period: str):
-    """Renderiza o quadrante com 3 cards (Curva A, B, C) e botão de exportação."""
-    star_svg = get_svg_icon("star")
-    trending_svg = get_svg_icon("trending-up")
-    package_svg = get_svg_icon("package")
+    """Renderiza o quadrante com 3 cards (Curva A, B, C) e botão de exportação usando componentes nativos."""
+    section_header(f"Resumo Curva ABC - Período {period}", "Total de anúncios e faturamento por classificação", "📊", "green")
     
-    # Cores para as curvas
+    cols = st.columns(3)
     colors = {"Curva A": "#22c55e", "Curva B": "#3b82f6", "Curva C": "#f59e0b"}
-    icons = {"Curva A": star_svg, "Curva B": trending_svg, "Curva C": package_svg}
+    icons = {"Curva A": "⭐", "Curva B": "📈", "Curva C": "📦"}
     
-    html = f"""
-<div class="section-box">
-  <div class="section-header">
-    <div class="section-icon">{get_svg_icon("bar-chart-3")}</div>
-    <div>
-      <div class="section-title">Resumo Curva ABC - Período {period}</div>
-      <div class="section-desc">Total de anúncios e faturamento por classificação</div>
-    </div>
-  </div>
-  <div class="logistics-grid">
-"""
-    for _, row in df_abc.iterrows():
+    for i, (_, row) in enumerate(df_abc.iterrows()):
         curva = row['Curva']
         color = colors.get(curva, "#ffffff")
-        icon = icons.get(curva, package_svg)
-        html += f"""
-    <div class="logistics-card" style="border-top: 4px solid {color}">
-      <div class="logistics-icon" style="color: {color} !important">{icon}</div>
-      <div class="logistics-title">{curva}</div>
-      <div class="logistics-value" style="color: {color}">{br_money(row['Faturamento'])}</div>
-      <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 4px;">{br_int(row['Anúncios'])} Anúncios</div>
-    </div>
-"""
-    html += """
-  </div>
-</div>
-"""
-    st.write(html, unsafe_allow_html=True)
+        icon = icons.get(curva, "📦")
+        
+        with cols[i]:
+            st.markdown(f"""
+            <div class="logistics-card" style="border-top: 4px solid {color}; padding: 20px; text-align: center; background: rgba(255,255,255,0.02); border-radius: 16px;">
+                <div style="font-size: 1.5rem; margin-bottom: 8px;">{icon}</div>
+                <div class="logistics-title" style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: #ffffff;">{curva}</div>
+                <div class="logistics-value" style="font-size: 1.5rem; font-weight: 800; color: {color};">{br_money(row['Faturamento'])}</div>
+                <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 4px; color: #ffffff;">{br_int(row['Anúncios'])} Anúncios</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
     
     # Botão de exportação logo abaixo dos cards
     st.download_button(
