@@ -2583,6 +2583,7 @@ with tab1:
     df_abc_period = pd.DataFrame(abc_rows)
     
     render_abc_quadrant(df_abc_period, selected_period)
+    section_footer()
     st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
 
     # Seções específicas por canal
