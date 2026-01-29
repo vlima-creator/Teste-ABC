@@ -1324,15 +1324,15 @@ def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic
     """
     st.markdown(html, unsafe_allow_html=True)
 
-def render_abc_quadrant(df_abc: pd.DataFrame, period: str):
-    """Renderiza o quadrante com 3 cards (Curva A, B, C) e botão de exportação usando componentes nativos."""
+def render_abc_quadrant(df_abc_summary: pd.DataFrame, df_abc_details: pd.DataFrame, period: str):
+    """Renderiza o quadrante com 3 cards (Curva A, B, C) e botão de exportação com lista detalhada."""
     section_header(f"Resumo Curva ABC - Período {period}", "Total de anúncios e faturamento por classificação", "📊", "green")
     
     cols = st.columns(3)
     colors = {"Curva A": "#22c55e", "Curva B": "#3b82f6", "Curva C": "#f59e0b"}
     icons = {"Curva A": "⭐", "Curva B": "📈", "Curva C": "📦"}
     
-    for i, (_, row) in enumerate(df_abc.iterrows()):
+    for i, (_, row) in enumerate(df_abc_summary.iterrows()):
         curva = row['Curva']
         color = colors.get(curva, "#ffffff")
         icon = icons.get(curva, "📦")
@@ -1352,7 +1352,7 @@ def render_abc_quadrant(df_abc: pd.DataFrame, period: str):
     # Botão de exportação logo abaixo dos cards
     st.download_button(
         label=f"📥 Gerar Relatório Excel Curva ABC ({period})",
-        data=to_xlsx_bytes(df_abc),
+        data=to_xlsx_bytes(df_abc_details),
         file_name=f"relatorio_curva_abc_{period.replace('-', '_')}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
@@ -2559,6 +2559,19 @@ with tab1:
 
     # Quadrante Curva ABC (Novo)
     abc_rows = []
+    # Detalhes para o Excel
+    df_abc_details = df_f[df_f[curve_col].isin(["A", "B", "C"])].copy()
+    # Selecionar e renomear colunas para o padrão solicitado
+    export_cols = {
+        "MLB": "MLB",
+        "Título": "Título",
+        qty_col: "Número de Vendas",
+        fat_col: "Faturamento",
+        curve_col: "Curva"
+    }
+    df_abc_details = df_abc_details[list(export_cols.keys())].rename(columns=export_cols)
+    df_abc_details = df_abc_details.sort_values(["Curva", "Faturamento"], ascending=[True, False])
+
     for curva in ["A", "B", "C"]:
         mask = df_f[curve_col] == curva
         abc_rows.append({
@@ -2566,9 +2579,9 @@ with tab1:
             "Anúncios": int(mask.sum()),
             "Faturamento": float(df_f.loc[mask, fat_col].sum())
         })
-    df_abc_period = pd.DataFrame(abc_rows)
+    df_abc_summary = pd.DataFrame(abc_rows)
     
-    render_abc_quadrant(df_abc_period, selected_period)
+    render_abc_quadrant(df_abc_summary, df_abc_details, selected_period)
     section_footer()
     st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
 
