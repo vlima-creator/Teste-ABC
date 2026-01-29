@@ -2565,11 +2565,13 @@ with tab1:
     export_cols = {
         "MLB": "MLB",
         "Título": "Título",
-        qty_col: "Número de Vendas",
+        qty_col: "Qtd Vendida",
         fat_col: "Faturamento",
         curve_col: "Curva"
     }
     df_abc_details = df_abc_details[list(export_cols.keys())].rename(columns=export_cols)
+    # Garantir que a quantidade seja inteiro
+    df_abc_details["Qtd Vendida"] = df_abc_details["Qtd Vendida"].fillna(0).astype(int)
     df_abc_details = df_abc_details.sort_values(["Curva", "Faturamento"], ascending=[True, False])
 
     for curva in ["A", "B", "C"]:
