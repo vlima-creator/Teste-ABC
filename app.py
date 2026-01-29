@@ -1324,6 +1324,55 @@ def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic
     """
     st.markdown(html, unsafe_allow_html=True)
 
+def render_abc_quadrant(df_abc: pd.DataFrame, period: str):
+    """Renderiza o quadrante com 3 cards (Curva A, B, C) e botão de exportação."""
+    star_svg = get_svg_icon("star")
+    trending_svg = get_svg_icon("trending-up")
+    package_svg = get_svg_icon("package")
+    
+    # Cores para as curvas
+    colors = {"Curva A": "#22c55e", "Curva B": "#3b82f6", "Curva C": "#f59e0b"}
+    icons = {"Curva A": star_svg, "Curva B": trending_svg, "Curva C": package_svg}
+    
+    html = f"""
+<div class="section-box">
+  <div class="section-header">
+    <div class="section-icon">{get_svg_icon("bar-chart-3")}</div>
+    <div>
+      <div class="section-title">Resumo Curva ABC - Período {period}</div>
+      <div class="section-desc">Total de anúncios e faturamento por classificação</div>
+    </div>
+  </div>
+  <div class="logistics-grid">
+"""
+    for _, row in df_abc.iterrows():
+        curva = row['Curva']
+        color = colors.get(curva, "#ffffff")
+        icon = icons.get(curva, package_svg)
+        html += f"""
+    <div class="logistics-card" style="border-top: 4px solid {color}">
+      <div class="logistics-icon" style="color: {color} !important">{icon}</div>
+      <div class="logistics-title">{curva}</div>
+      <div class="logistics-value" style="color: {color}">{br_money(row['Faturamento'])}</div>
+      <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 4px;">{br_int(row['Anúncios'])} Anúncios</div>
+    </div>
+"""
+    html += """
+  </div>
+</div>
+"""
+    st.markdown(html, unsafe_allow_html=True)
+    
+    # Botão de exportação logo abaixo dos cards
+    st.download_button(
+        label=f"📥 Gerar Relatório Excel Curva ABC ({period})",
+        data=to_xlsx_bytes(df_abc),
+        file_name=f"relatorio_curva_abc_{period.replace('-', '_')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
+        key=f"btn_abc_{period}"
+    )
+
 def render_export_card(icon: str, title: str, desc: str, itens: int, fat: float, card_type: str):
     """Renderiza card de exportação com estatísticas"""
     icon_map = {
@@ -2521,6 +2570,20 @@ with tab1:
         fig.update_traces(marker_line_width=0)
         st.plotly_chart(fig, use_container_width=True)
         section_footer()
+
+    # Quadrante Curva ABC (Novo)
+    abc_rows = []
+    for curva in ["A", "B", "C"]:
+        mask = df_f[curve_col] == curva
+        abc_rows.append({
+            "Curva": f"Curva {curva}",
+            "Anúncios": int(mask.sum()),
+            "Faturamento": float(df_f.loc[mask, fat_col].sum())
+        })
+    df_abc_period = pd.DataFrame(abc_rows)
+    
+    render_abc_quadrant(df_abc_period, selected_period)
+    st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
 
     # Seções específicas por canal
     if st.session_state.get('canal') == 'Mercado Livre':
