@@ -1361,7 +1361,7 @@ def render_abc_quadrant(df_abc: pd.DataFrame, period: str):
   </div>
 </div>
 """
-    st.markdown(html, unsafe_allow_html=True)
+    st.write(html, unsafe_allow_html=True)
     
     # Botão de exportação logo abaixo dos cards
     st.download_button(
