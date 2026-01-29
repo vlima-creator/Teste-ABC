@@ -2570,9 +2570,13 @@ with tab1:
         curve_col: "Curva"
     }
     df_abc_details = df_abc_details[list(export_cols.keys())].rename(columns=export_cols)
+    # Calcular Ticket Médio (Valor de venda unitário)
+    df_abc_details["Ticket Médio"] = df_abc_details.apply(lambda r: safe_div(r["Faturamento"], r["Qtd Vendida"]), axis=1)
     # Garantir que a quantidade seja inteiro
     df_abc_details["Qtd Vendida"] = df_abc_details["Qtd Vendida"].fillna(0).astype(int)
-    df_abc_details = df_abc_details.sort_values(["Curva", "Faturamento"], ascending=[True, False])
+    # Reordenar colunas para o Ticket Médio ficar após a Qtd Vendida
+    final_cols = ["MLB", "Título", "Qtd Vendida", "Ticket Médio", "Faturamento", "Curva"]
+    df_abc_details = df_abc_details[final_cols].sort_values(["Curva", "Faturamento"], ascending=[True, False])
 
     for curva in ["A", "B", "C"]:
         mask = df_f[curve_col] == curva
