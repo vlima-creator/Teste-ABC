@@ -2137,15 +2137,7 @@ with st.sidebar:
     cliente_nome = st.text_input("Nome do Cliente / Conta", value="Geral", help="Digite o nome do cliente para isolar o histórico e as comparações.")
     st.session_state['cliente_atual'] = cliente_nome
 
-    # Versão
-    st.markdown(
-        """
-<div class='sidebar-version'>
-  Dashboard v4.3 • Manus AI
-</div>
-        """,
-        unsafe_allow_html=True,
-    )
+    # Versão removida conforme solicitado
 
 if not uploaded_files:
     st.info("Faça upload do(s) relatório(s) de vendas (Mercado Livre ou Shopee) para começar.")
