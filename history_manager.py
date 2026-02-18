@@ -15,6 +15,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS snapshots (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            cliente TEXT,
             canal TEXT,
             total_ads INTEGER,
             total_fat REAL,
@@ -30,6 +31,11 @@ def init_db():
             organic_valor REAL
         )
     ''')
+    # Verificar se a coluna cliente existe (para migração de bancos existentes)
+    cursor.execute("PRAGMA table_info(snapshots)")
+    columns = [col[1] for col in cursor.fetchall()]
+    if 'cliente' not in columns:
+        cursor.execute("ALTER TABLE snapshots ADD COLUMN cliente TEXT DEFAULT 'Geral'")
     conn.commit()
     conn.close()
 
@@ -46,20 +52,20 @@ def save_snapshot(metrics):
     conn.commit()
     conn.close()
 
-def get_last_snapshot(canal):
+def get_last_snapshot(cliente, canal):
     init_db()
     conn = sqlite3.connect(DB_PATH)
-    query = "SELECT * FROM snapshots WHERE canal = ? ORDER BY timestamp DESC LIMIT 1"
-    df = pd.read_sql_query(query, conn, params=(canal,))
+    query = "SELECT * FROM snapshots WHERE cliente = ? AND canal = ? ORDER BY timestamp DESC LIMIT 1"
+    df = pd.read_sql_query(query, conn, params=(cliente, canal))
     conn.close()
     if df.empty:
         return None
     return df.iloc[0].to_dict()
 
-def get_history(canal, limit=10):
+def get_history(cliente, canal, limit=10):
     init_db()
     conn = sqlite3.connect(DB_PATH)
-    query = "SELECT * FROM snapshots WHERE canal = ? ORDER BY timestamp DESC LIMIT ?"
-    df = pd.read_sql_query(query, conn, params=(canal, limit))
+    query = "SELECT * FROM snapshots WHERE cliente = ? AND canal = ? ORDER BY timestamp DESC LIMIT ?"
+    df = pd.read_sql_query(query, conn, params=(cliente, canal, limit))
     conn.close()
     return df

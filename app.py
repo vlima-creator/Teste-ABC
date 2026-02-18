@@ -2131,6 +2131,12 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     
+    # Identificação do Cliente
+    st.markdown("---")
+    st.markdown("### 👤 Identificação da Conta")
+    cliente_nome = st.text_input("Nome do Cliente / Conta", value="Geral", help="Digite o nome do cliente para isolar o histórico e as comparações.")
+    st.session_state['cliente_atual'] = cliente_nome
+
     # Versão
     st.markdown(
         """
@@ -2514,6 +2520,8 @@ tm_geral = safe_div(tt_fat, tt_qty) if tt_qty else 0.0
 
 # Preparar snapshot atual
 canal_atual = st.session_state.get('canal', 'Mercado Livre')
+cliente_atual = st.session_state.get('cliente_atual', 'Geral')
+
 fuga_count = len(drop_alert) if 'drop_alert' in locals() else 0
 fuga_valor = float(drop_alert['Perda estimada'].sum()) if 'drop_alert' in locals() and not drop_alert.empty else 0.0
 ancoras_count = len(anchors) if 'anchors' in locals() else 0
@@ -2532,6 +2540,7 @@ if not df_ads.empty:
         organic_valor_snap = float(ads_row_snap.get('organic_value', 0))
 
 current_metrics = {
+    "cliente": cliente_atual,
     "canal": canal_atual,
     "total_ads": total_ads,
     "total_fat": tt_fat,
@@ -2551,13 +2560,14 @@ current_metrics = {
 with st.sidebar:
     st.markdown("---")
     st.markdown("### 🕒 Gestão de Histórico")
+    st.info(f"Conta ativa: **{cliente_atual}**")
     if st.button("💾 Salvar Snapshot Atual", use_container_width=True, help="Salva as métricas atuais para comparação futura"):
         history_manager.save_snapshot(current_metrics)
-        st.success("Snapshot salvo com sucesso!")
+        st.success(f"Snapshot de '{cliente_atual}' salvo com sucesso!")
         st.rerun()
 
 # Buscar último snapshot para comparação
-last_snap = history_manager.get_last_snapshot(canal_atual)
+last_snap = history_manager.get_last_snapshot(cliente_atual, canal_atual)
 
 def render_comparison_metric(label, current_val, last_val, is_money=False, is_pct=False):
     delta = None
@@ -3250,7 +3260,7 @@ with tab4:
     # Seção 4: Histórico de Evolução
     st.markdown(render_report_section("activity", "Histórico de Evolução", "Acompanhamento das métricas ao longo do tempo", "blue"), unsafe_allow_html=True)
     
-    history_df = history_manager.get_history(canal_atual)
+    history_df = history_manager.get_history(cliente_atual, canal_atual)
     if not history_df.empty:
         # Gráfico de evolução do faturamento
         history_df['timestamp'] = pd.to_datetime(history_df['timestamp'])
