@@ -4,7 +4,8 @@ import json
 from datetime import datetime
 import os
 
-DB_PATH = "/home/ubuntu/Teste-ABC/history.db"
+# Usar caminho relativo para compatibilidade com Streamlit Cloud
+DB_PATH = os.path.join(os.path.dirname(__file__), "history.db")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
