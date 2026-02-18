@@ -1301,7 +1301,7 @@ def render_logistics_section(full_pct: float, correios_pct: float, flex_pct: flo
     """
     st.markdown(html, unsafe_allow_html=True)
 
-def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic_qty: int, period: str):
+def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic_qty: int, ads_value: float, organic_value: float, period: str):
     """Renderiza seção de vendas por publicidade"""
     megaphone_svg = get_svg_icon("megaphone")
     html = f"""
@@ -1314,10 +1314,12 @@ def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic
     <div class="ads-metric ads">
       <div class="ads-metric-value ads">{ads_pct:.1f}%</div>
       <div class="ads-metric-label">Via Publicidade ({ads_qty:,} vendas)</div>
+      <div class="ads-metric-label" style="font-weight: 800; opacity: 1; margin-top: 8px; color: #fb923c;">{br_money(ads_value)}</div>
     </div>
     <div class="ads-metric organic">
       <div class="ads-metric-value organic">{organic_pct:.1f}%</div>
       <div class="ads-metric-label">Orgânicas ({organic_qty:,} vendas)</div>
+      <div class="ads-metric-label" style="font-weight: 800; opacity: 1; margin-top: 8px; color: #4ade80;">{br_money(organic_value)}</div>
     </div>
   </div>
   <div class="ads-bar-container">
@@ -1883,12 +1885,18 @@ def _transform_ml_raw(file) -> tuple:
             ads_qty = int(periodo_df[periodo_df['is_ads']]['unidades'].sum())
             organic_qty = total_qty - ads_qty
             
+            ads_value = float(periodo_df[periodo_df['is_ads']]['receita'].sum())
+            total_value = float(periodo_df['receita'].sum())
+            organic_value = total_value - ads_value
+            
             ads_data.append({
                 'periodo': periodo,
                 'ads_pct': (ads_qty / total_qty) * 100,
                 'organic_pct': (organic_qty / total_qty) * 100,
                 'ads_qty': ads_qty,
                 'organic_qty': organic_qty,
+                'ads_value': ads_value,
+                'organic_value': organic_value,
                 'total_qty': total_qty
             })
         else:
@@ -1899,7 +1907,8 @@ def _transform_ml_raw(file) -> tuple:
             })
             ads_data.append({
                 'periodo': periodo,
-                'ads_pct': 0, 'organic_pct': 0, 'ads_qty': 0, 'organic_qty': 0, 'total_qty': 0
+                'ads_pct': 0, 'organic_pct': 0, 'ads_qty': 0, 'organic_qty': 0, 
+                'ads_value': 0, 'organic_value': 0, 'total_qty': 0
             })
 
     df_logistics = pd.DataFrame(logistics_data)
@@ -2653,6 +2662,8 @@ with tab1:
                     organic_pct=ads_row['organic_pct'],
                     ads_qty=int(ads_row['ads_qty']),
                     organic_qty=int(ads_row['organic_qty']),
+                    ads_value=float(ads_row.get('ads_value', 0)),
+                    organic_value=float(ads_row.get('organic_value', 0)),
                     period=selected_period
                 )
     

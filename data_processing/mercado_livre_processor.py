@@ -349,12 +349,17 @@ class MercadoLivreProcessor(BaseProcessor):
                 ads_qty = base_p['is_ads'].sum()
                 organic_qty = base_p['is_organic'].sum()
                 
+                ads_value = base_p[base_p['is_ads']]['receita'].sum()
+                organic_value = base_p[base_p['is_organic']]['receita'].sum()
+                
                 ads_rows.append({
                     'periodo': p,
                     'ads_pct': ads_qty / total,
                     'organic_pct': organic_qty / total,
                     'ads_qty': int(ads_qty),
-                    'organic_qty': int(organic_qty)
+                    'organic_qty': int(organic_qty),
+                    'ads_value': float(ads_value),
+                    'organic_value': float(organic_value)
                 })
             else:
                 ads_rows.append({
@@ -362,7 +367,9 @@ class MercadoLivreProcessor(BaseProcessor):
                     'ads_pct': 0,
                     'organic_pct': 0,
                     'ads_qty': 0,
-                    'organic_qty': 0
+                    'organic_qty': 0,
+                    'ads_value': 0.0,
+                    'organic_value': 0.0
                 })
         
         df_ads = pd.DataFrame(ads_rows)
