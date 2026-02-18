@@ -319,6 +319,11 @@ class MercadoLivreProcessor(BaseProcessor):
                 flex_qty = base_p['is_flex'].sum()
                 outros_qty = base_p['is_outros'].sum()
                 
+                full_fat = base_p[base_p['is_full']]['receita'].sum()
+                correios_fat = base_p[base_p['is_correios']]['receita'].sum()
+                flex_fat = base_p[base_p['is_flex']]['receita'].sum()
+                outros_fat = base_p[base_p['is_outros']]['receita'].sum()
+                
                 log_rows.append({
                     'periodo': p,
                     'full_pct': full_qty / total,
@@ -328,13 +333,18 @@ class MercadoLivreProcessor(BaseProcessor):
                     'full_qty': int(full_qty),
                     'correios_qty': int(correios_qty),
                     'flex_qty': int(flex_qty),
-                    'outros_qty': int(outros_qty)
+                    'outros_qty': int(outros_qty),
+                    'full_fat': float(full_fat),
+                    'correios_fat': float(correios_fat),
+                    'flex_fat': float(flex_fat),
+                    'outros_fat': float(outros_fat)
                 })
             else:
                 log_rows.append({
                     'periodo': p,
                     'full_pct': 0, 'correios_pct': 0, 'flex_pct': 0, 'outros_pct': 0,
-                    'full_qty': 0, 'correios_qty': 0, 'flex_qty': 0, 'outros_qty': 0
+                    'full_qty': 0, 'correios_qty': 0, 'flex_qty': 0, 'outros_qty': 0,
+                    'full_fat': 0.0, 'correios_fat': 0.0, 'flex_fat': 0.0, 'outros_fat': 0.0
                 })
         
         df_logistics = pd.DataFrame(log_rows)
