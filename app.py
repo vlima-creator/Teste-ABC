@@ -3271,7 +3271,7 @@ with tab4:
         fig.add_trace(go.Scatter(x=history_df['timestamp'], y=history_df['ancoras_valor'], name='Faturamento Âncoras', line=dict(color='#3b82f6', width=2, dash='dot')))
         
         fig.update_layout(
-            title="Evolução do Faturamento",
+            title="Evolução do Faturamento (Total vs Âncoras)",
             template="plotly_dark",
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
@@ -3279,6 +3279,34 @@ with tab4:
             height=300
         )
         st.plotly_chart(fig, use_container_width=True)
+
+        # Gráfico de evolução da Fuga de Receita
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            fig_fuga_qty = go.Figure()
+            fig_fuga_qty.add_trace(go.Bar(x=history_df['timestamp'], y=history_df['fuga_receita_count'], name='Qtd Produtos', marker_color='#f59e0b'))
+            fig_fuga_qty.update_layout(
+                title="Qtd Produtos em Fuga",
+                template="plotly_dark",
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=20, r=20, t=40, b=20),
+                height=250
+            )
+            st.plotly_chart(fig_fuga_qty, use_container_width=True)
+        
+        with col_f2:
+            fig_fuga_val = go.Figure()
+            fig_fuga_val.add_trace(go.Scatter(x=history_df['timestamp'], y=history_df['fuga_receita_valor'], name='Perda Estimada', fill='tozeroy', line=dict(color='#ef4444')))
+            fig_fuga_val.update_layout(
+                title="Valor da Perda Estimada (R$)",
+                template="plotly_dark",
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=20, r=20, t=40, b=20),
+                height=250
+            )
+            st.plotly_chart(fig_fuga_val, use_container_width=True)
         
         # Tabela de histórico detalhada
         st.markdown("#### Detalhes dos Snapshots")
@@ -3288,9 +3316,10 @@ with tab4:
         hist_show['Conc. Curva A'] = hist_show['conc_a'].apply(lambda x: f"{x*100:.1f}%")
         hist_show['Ticket Médio'] = hist_show['tm_atual'].apply(br_money)
         hist_show['Fuga (Qtd)'] = hist_show['fuga_receita_count']
+        hist_show['Perda Fuga'] = hist_show['fuga_receita_valor'].apply(br_money)
         
         st.dataframe(
-            hist_show[['Data', 'Faturamento', 'Conc. Curva A', 'Ticket Médio', 'Fuga (Qtd)']],
+            hist_show[['Data', 'Faturamento', 'Conc. Curva A', 'Ticket Médio', 'Fuga (Qtd)', 'Perda Fuga']],
             use_container_width=True,
             hide_index=True
         )
