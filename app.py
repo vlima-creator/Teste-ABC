@@ -3262,13 +3262,17 @@ with tab4:
     
     history_df = history_manager.get_history(cliente_atual, canal_atual)
     if not history_df.empty:
-        # Gráfico de evolução do faturamento
+        # Garantir ordem cronológica (antigo para novo)
         history_df['timestamp'] = pd.to_datetime(history_df['timestamp'])
-        history_df = history_df.sort_values('timestamp')
+        history_df = history_df.sort_values('timestamp').reset_index(drop=True)
         
+        # Criar rótulos sequenciais para o eixo X (Análise 1, Análise 2, ...)
+        history_df['Analise'] = [f"Análise {i+1}" for i in history_df.index]
+        
+        # Gráfico de evolução do faturamento
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=history_df['timestamp'], y=history_df['total_fat'], name='Faturamento Total', line=dict(color='#10b981', width=3)))
-        fig.add_trace(go.Scatter(x=history_df['timestamp'], y=history_df['ancoras_valor'], name='Faturamento Âncoras', line=dict(color='#3b82f6', width=2, dash='dot')))
+        fig.add_trace(go.Scatter(x=history_df['Analise'], y=history_df['total_fat'], name='Faturamento Total', line=dict(color='#10b981', width=3), hovertext=history_df['timestamp'].dt.strftime('%d/%m/%Y %H:%M')))
+        fig.add_trace(go.Scatter(x=history_df['Analise'], y=history_df['ancoras_valor'], name='Faturamento Âncoras', line=dict(color='#3b82f6', width=2, dash='dot')))
         
         fig.update_layout(
             title="Evolução do Faturamento (Total vs Âncoras)",
@@ -3276,7 +3280,8 @@ with tab4:
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             margin=dict(l=20, r=20, t=40, b=20),
-            height=300
+            height=300,
+            xaxis=dict(type='category')
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -3284,27 +3289,29 @@ with tab4:
         col_f1, col_f2 = st.columns(2)
         with col_f1:
             fig_fuga_qty = go.Figure()
-            fig_fuga_qty.add_trace(go.Bar(x=history_df['timestamp'], y=history_df['fuga_receita_count'], name='Qtd Produtos', marker_color='#f59e0b'))
+            fig_fuga_qty.add_trace(go.Bar(x=history_df['Analise'], y=history_df['fuga_receita_count'], name='Qtd Produtos', marker_color='#f59e0b', hovertext=history_df['timestamp'].dt.strftime('%d/%m/%Y %H:%M')))
             fig_fuga_qty.update_layout(
                 title="Qtd Produtos em Fuga",
                 template="plotly_dark",
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=20, r=20, t=40, b=20),
-                height=250
+                height=250,
+                xaxis=dict(type='category')
             )
             st.plotly_chart(fig_fuga_qty, use_container_width=True)
         
         with col_f2:
             fig_fuga_val = go.Figure()
-            fig_fuga_val.add_trace(go.Scatter(x=history_df['timestamp'], y=history_df['fuga_receita_valor'], name='Perda Estimada', fill='tozeroy', line=dict(color='#ef4444')))
+            fig_fuga_val.add_trace(go.Scatter(x=history_df['Analise'], y=history_df['fuga_receita_valor'], name='Perda Estimada', fill='tozeroy', line=dict(color='#ef4444'), hovertext=history_df['timestamp'].dt.strftime('%d/%m/%Y %H:%M')))
             fig_fuga_val.update_layout(
                 title="Valor da Perda Estimada (R$)",
                 template="plotly_dark",
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=20, r=20, t=40, b=20),
-                height=250
+                height=250,
+                xaxis=dict(type='category')
             )
             st.plotly_chart(fig_fuga_val, use_container_width=True)
         
