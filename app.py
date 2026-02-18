@@ -3340,7 +3340,7 @@ st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
 st.markdown(
     """
     <div style="text-align: center; opacity: 0.5; font-size: 0.85rem; padding: 20px 0;">
-        📊 Curva ABC Dashboard v4.3 | Análise inteligente para decisões rápidas
+        Desenvolvido por Vinicius Lima/ CNPJ: 47.192.694/0001-70
     </div>
     """,
     unsafe_allow_html=True
