@@ -2098,38 +2098,8 @@ with st.sidebar:
     st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
 
     # Seção de Filtros
-    target_svg = get_svg_icon("target")
-    st.markdown(
-        f"""
-<div class='sidebar-section'>
-  <div class='sidebar-section-header'>
-    <div class='sidebar-section-icon'>{target_svg}</div>
-    <div>
-      <div class='sidebar-section-title'>Filtros Globais</div>
-      <div class='sidebar-section-desc'>Selecione as curvas para análise</div>
-    </div>
-  </div>
-</div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    curve_filter = st.multiselect(
-        "Curvas 0-30",
-        options=["A", "B", "C", "-"],
-        default=["A", "B", "C", "-"],
-        help="A = Top 80% faturamento | B = Próximos 15% | C = Últimos 5% | - = Sem vendas"
-    )
-    
-    # Dica
-    st.markdown(
-        """
-<div class='sidebar-tip'>
-  <strong>DICA:</strong> Use as curvas para focar sua análise. Curva A são seus produtos estrela!
-</div>
-        """,
-        unsafe_allow_html=True,
-    )
+    # Filtros Globais removidos conforme solicitado
+    curve_filter = ["A", "B", "C", "-"]
     
     # Identificação do Cliente
     st.markdown("---")
