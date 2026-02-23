@@ -51,8 +51,6 @@ def render_guide_tab():
             | Relatório | Caminho no Mercado Livre | Finalidade na Ferramenta |
             | :--- | :--- | :--- |
             | **Vendas** | Vendas > Vendas > Ícone de Download (Excel) | Base de pedidos, datas e status. |
-            | **Faturamento** | Faturamento > Relatórios de faturamento > Detalhes do período | Tarifas, custos de envio e impostos. |
-            | **Publicidade** | Publicidade > Product Ads > Exportar | Performance de anúncios e ACOS/ROAS. |
             """
         )
         st.warning("⚠️ **Atenção:** O Mercado Livre exporta arquivos com nomes como `Vendas-202X-XX-XX.xlsx`. Carregue o arquivo completo sem alterações.")

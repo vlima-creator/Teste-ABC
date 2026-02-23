@@ -2111,7 +2111,7 @@ with st.sidebar:
     # Versão removida conforme solicitado
 
 if not uploaded_files:
-    st.info("Faça upload do(s) relatório(s) de vendas (Mercado Livre ou Shopee) para começar.")
+    render_guide_tab()
     st.stop()
 
 # =========================
