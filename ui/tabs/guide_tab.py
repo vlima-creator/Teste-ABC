@@ -71,7 +71,7 @@ def render_guide_tab():
     st.markdown(
         """
         <div style='text-align: center; opacity: 0.6; font-size: 0.8rem; padding: 20px;'>
-            Ferramenta de Diagnóstico Estratégico - v3.1
+            © Desenvolvido por Vinicius Lima/ CNPJ: 47.192.694/0001-70
         </div>
         """,
         unsafe_allow_html=True
