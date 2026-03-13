@@ -2823,33 +2823,105 @@ with tab1:
 
     st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
     
-    section_header("Ações por Frente", "Visão estratégica das prioridades", "🎯", "rose")
+    section_header("Ações por Frente", "Visão estratégica das prioridades (Período: " + selected_period + " dias)", "🎯", "rose")
     
-    def _front_agg(df_seg: pd.DataFrame):
+    def _front_agg(df_seg: pd.DataFrame, period_fat_col: str):
+        """Agrega dados de frente respeitando o período selecionado."""
         if df_seg is None or len(df_seg) == 0:
             return 0, 0.0
-        fat_col_agg = "Fat. 0-30" if "Fat. 0-30" in df_seg.columns else ("Fat total" if "Fat total" in df_seg.columns else None)
-        fat = float(df_seg[fat_col_agg].sum()) if fat_col_agg else 0.0
+        fat = float(df_seg[period_fat_col].sum()) if period_fat_col in df_seg.columns else 0.0
         return int(len(df_seg)), fat
 
-    crescimento = pd.concat([ensure_cols(rise_to_A, plan.columns), ensure_cols(opp_50_60, plan.columns)], ignore_index=True)
-    crescimento = crescimento.drop_duplicates(subset=[c for c in ["MLB", "SKU", "# de anúncio", "Título"] if c in crescimento.columns])
+    # Recalcular segmentações com base no período selecionado
+    if st.session_state.get('canal') == 'Shopee':
+        # Para Shopee, usa apenas o período 0-30
+        anchors_period = df_f[
+            (df_f["Curva 0-30"] == "A")
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        inactivate_period = df_f[
+            (df_f["Qntd 0-30"] == 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        revitalize_period = df_f[
+            (df_f["Curva 0-30"].isin(["C", "-"])) &
+            (df_f["Qntd 0-30"] > 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        rise_to_A_period = df_f[
+            (df_f["Curva 0-30"] == "A") &
+            (df_f["Qntd 0-30"] > 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        opp_50_60_period = df_f[
+            (df_f["Curva 0-30"] == "B")
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        drop_alert_period = df_f[
+            (df_f["Curva 0-30"].isin(["C", "-"])) &
+            (df_f["TM total"] > df_f["TM total"].median())
+        ].copy()
+        
+        if len(drop_alert_period) > 0:
+            drop_alert_period["Perda estimada"] = drop_alert_period["TM total"] * 10
+            drop_alert_period = drop_alert_period.sort_values("Perda estimada", ascending=False)
+    else:
+        # Para Mercado Livre, usa o período selecionado
+        anchors_period = df_f[
+            (df_f[curve_col] == "A") &
+            (df_f["Curva 31-60"].isin(["A", "B"])) &
+            (df_f["Curva 61-90"].isin(["A", "B"]))
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        inactivate_period = df_f[
+            (df_f[qty_col] == 0) &
+            (df_f["Qntd 31-60"] == 0) &
+            (df_f["Qntd 61-90"] == 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        revitalize_period = df_f[
+            (df_f["Curva 31-60"].isin(["A", "B"])) &
+            (df_f[curve_col].isin(["C", "-"]))
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        rise_to_A_period = df_f[
+            (df_f["Curva 31-60"].isin(["B", "C"])) &
+            (df_f[curve_col] == "A")
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        opp_50_60_period = df_f[
+            (df_f[curve_col] == "B") &
+            (df_f[qty_col] >= df_f["Qntd 31-60"] * 1.1)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        drop_alert_period = df_f[
+            (df_f["Curva 31-60"].isin(["A", "B"])) &
+            (df_f[curve_col].isin(["C", "-"]))
+        ].copy()
+        
+        if len(drop_alert_period) > 0:
+            drop_alert_period["Fat anterior ref"] = drop_alert_period[["Fat. 31-60", "Fat. 61-90"]].max(axis=1)
+            drop_alert_period["Perda estimada"] = drop_alert_period["Fat anterior ref"] - drop_alert_period[fat_col]
+            drop_alert_period = drop_alert_period.sort_values("Perda estimada", ascending=False)
+
+    crescimento_period = pd.concat([ensure_cols(rise_to_A_period, plan.columns), ensure_cols(opp_50_60_period, plan.columns)], ignore_index=True)
+    crescimento_period = crescimento_period.drop_duplicates(subset=[c for c in ["MLB", "SKU", "# de anúncio", "Título"] if c in crescimento_period.columns])
 
     col1, col2 = st.columns(2)
     
     with col1:
-        itens, fat = _front_agg(anchors)
-        render_front_card("🛡️", "Defesa - Âncoras", "Proteja estoque e conversão", itens, fat, "defense", "ancoras.csv", anchors)
+        itens, fat = _front_agg(anchors_period, fat_col)
+        render_front_card("🛡️", "Defesa - Âncoras", "Proteja estoque e conversão", itens, fat, "defense", "ancoras.xlsx", anchors_period)
         
-        itens, fat = _front_agg(drop_alert)
-        render_front_card("⚠️", "Correção - Fuga de Receita", "Produtos que caíram", itens, fat, "correction", "fuga_de_receita.csv", drop_alert)
+        itens, fat = _front_agg(drop_alert_period, fat_col)
+        render_front_card("⚠️", "Correção - Fuga de Receita", "Produtos que caíram", itens, fat, "correction", "fuga_de_receita.xlsx", drop_alert_period)
 
     with col2:
-        itens, fat = _front_agg(crescimento)
-        render_front_card("🚀", "Ataque - Crescimento", "Produtos em ascensão", itens, fat, "attack", "crescimento.csv", crescimento)
+        itens, fat = _front_agg(crescimento_period, fat_col)
+        render_front_card("🚀", "Ataque - Crescimento", "Produtos em ascensão", itens, fat, "attack", "crescimento.xlsx", crescimento_period)
         
-        itens, fat = _front_agg(inactivate)
-        render_front_card("🧹", "Limpeza - Parados", "Produtos para cortar ou liquidar", itens, fat, "cleanup", "parados_inativar.csv", inactivate)
+        itens, fat = _front_agg(inactivate_period, fat_col)
+        render_front_card("🧹", "Limpeza - Parados", "Produtos para cortar ou liquidar", itens, fat, "cleanup", "parados_inativar.xlsx", inactivate_period)
 
     section_footer()
 
