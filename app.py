@@ -2929,10 +2929,8 @@ with tab1:
 # TAB 2: Listas e Exportação (MELHORADA)
 # =========================
 with tab2:
-    st.markdown(render_report_section("package", "Central de Exportação", "Baixe listas segmentadas para ação imediata", "blue"), unsafe_allow_html=True)
+    st.markdown(render_report_section("package", "Central de Exportação", f"Baixe listas segmentadas para ação imediata - Período: {selected_period} dias", "blue"), unsafe_allow_html=True)
     
-
-
     # Função para adicionar planos de ação aos exports
     def enrich_df(base_df: pd.DataFrame) -> pd.DataFrame:
         result = base_df.copy()
@@ -2941,22 +2939,37 @@ with tab2:
         result = result.merge(plan_data, on="MLB", how="left", suffixes=("", "_plan"))
         return result
 
-    anchors_export = enrich_df(anchors.copy())
-    inactivate_export = enrich_df(inactivate.copy())
-    revitalize_export = enrich_df(revitalize.copy())
-    opp_export = enrich_df(opp_50_60.copy())
-    drop_export = enrich_df(drop_alert.copy())
-    combo_export = enrich_df(dead_stock_combo.copy())
+    # Usar as segmentações do período selecionado (calculadas no dashboard)
+    anchors_export = enrich_df(anchors_period.copy())
+    inactivate_export = enrich_df(inactivate_period.copy())
+    revitalize_export = enrich_df(revitalize_period.copy())
+    opp_export = enrich_df(opp_50_60_period.copy())
+    drop_export = enrich_df(drop_alert_period.copy())
+    
+    # Para combo, usar a mesma lógica do período
+    if st.session_state.get('canal') == 'Shopee':
+        combo_period = df_f[
+            (df_f["Curva 0-30"] == "-") &
+            (df_f["Fat total"] > 0)
+        ].sort_values("TM total", ascending=False).copy()
+    else:
+        combo_period = df_f[
+            (df_f[curve_col] == "-") &
+            (df_f["Fat total"] > 0)
+        ].sort_values("TM total", ascending=False).copy()
+    
+    combo_export = enrich_df(combo_period.copy())
 
     # Colunas base + planos de ação
     plan_cols = ["Ação sugerida", "Plano 7 dias", "Plano 15 dias", "Plano 30 dias"]
     
-    anchors_cols = ["MLB","Título","Fat total","Qtd total","TM total","Curva 0-30","Curva 31-60","Curva 61-90","Curva 91-120"] + plan_cols
-    inactivate_cols = ["MLB","Título","Fat total","Qtd total","Curva 0-30","Qntd 0-30","Qntd 31-60","Qntd 61-90"] + plan_cols
-    revitalize_cols = ["MLB","Título","Fat total","Qtd total","Curva 31-60","Curva 0-30","Qntd 31-60","Qntd 0-30"] + plan_cols
-    opp_cols = ["MLB","Título","Fat total","Curva 0-30","Qntd 0-30","Curva 31-60","Qntd 31-60"] + plan_cols
-    drop_cols = ["MLB","Título","Curva 31-60","Curva 61-90","Curva 0-30","Fat anterior ref","Fat. 0-30","Perda estimada"] + plan_cols
-    combo_cols = ["MLB","Título","TM histórico","Fat. 31-60","Fat. 61-90","Fat. 91-120","Fat. 0-30"] + plan_cols
+    # Definir colunas específicas para cada tipo de exportação com base no período selecionado
+    anchors_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}","Curva 0-30","Curva 31-60","Curva 61-90","Curva 91-120"] + plan_cols
+    inactivate_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}","Curva 0-30","Qntd 0-30","Qntd 31-60","Qntd 61-90"] + plan_cols
+    revitalize_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}","Curva 31-60","Curva 0-30",f"Qntd {selected_period}","Qntd 0-30"] + plan_cols
+    opp_cols = ["MLB","Título",f"Fat. {selected_period}","Curva 0-30",f"Qntd {selected_period}","Curva 31-60","Qntd 31-60"] + plan_cols
+    drop_cols = ["MLB","Título","Curva 31-60","Curva 61-90","Curva 0-30",f"Fat. {selected_period}","Perda estimada"] + plan_cols
+    combo_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}"] + plan_cols
 
     anchors_export = ensure_cols(anchors_export, anchors_cols)
     inactivate_export = ensure_cols(inactivate_export, inactivate_cols)
@@ -2965,9 +2978,11 @@ with tab2:
     drop_export = ensure_cols(drop_export, drop_cols)
     combo_export = ensure_cols(combo_export, combo_cols)
 
-    # Calcular faturamentos
+    # Calcular faturamentos com base no período selecionado
     def get_fat(df_exp):
-        if "Fat total" in df_exp.columns:
+        if f"Fat. {selected_period}" in df_exp.columns:
+            return float(df_exp[f"Fat. {selected_period}"].sum())
+        elif "Fat total" in df_exp.columns:
             return float(df_exp["Fat total"].sum())
         elif "Fat. 0-30" in df_exp.columns:
             return float(df_exp["Fat. 0-30"].sum())
