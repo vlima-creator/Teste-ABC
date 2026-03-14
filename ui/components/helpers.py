@@ -88,10 +88,14 @@ def to_xlsx_bytes(dataframe: pd.DataFrame) -> bytes:
         
         for i, col in enumerate(dataframe.columns):
             # Calcular largura ideal da coluna
-            max_len = max(
-                dataframe[col].astype(str).map(len).max(),
-                len(str(col))
-            ) + 2
+            try:
+                max_data_len = dataframe[col].astype(str).map(len).max()
+                if pd.isna(max_data_len): # Caso o dataframe esteja vazio
+                    max_data_len = 0
+            except:
+                max_data_len = 0
+                
+            max_len = max(max_data_len, len(str(col))) + 2
             column_width = min(max(max_len, 12), 60) # Mínimo 12, Máximo 60
             
             col_lower = col.lower()
