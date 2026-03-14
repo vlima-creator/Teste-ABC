@@ -3026,16 +3026,23 @@ with tab2:
     
     with st.expander("PRÉVIA: FUGA DE RECEITA (TOP 20 POR PERDA ESTIMADA)", expanded=False):
         show = drop_export.head(20).copy()
-        show["Fat anterior ref"] = show["Fat anterior ref"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
-        show["Fat. 0-30"] = show["Fat. 0-30"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
-        show["Perda estimada"] = show["Perda estimada"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+        if not show.empty:
+            if "Fat anterior ref" in show.columns:
+                show["Fat anterior ref"] = show["Fat anterior ref"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+            if "Fat. 0-30" in show.columns:
+                show["Fat. 0-30"] = show["Fat. 0-30"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+            if "Perda estimada" in show.columns:
+                show["Perda estimada"] = show["Perda estimada"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
 
         st.dataframe(show, use_container_width=True, hide_index=True, height=450)
 
     with st.expander("PRÉVIA: ÂNCORAS (TOP 20 POR FATURAMENTO)", expanded=False):
         show = anchors_export.head(20).copy()
-        show["Fat total"] = show["Fat total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
-        show["TM total"] = show["TM total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+        if not show.empty:
+            if "Fat total" in show.columns:
+                show["Fat total"] = show["Fat total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+            if "TM total" in show.columns:
+                show["TM total"] = show["TM total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
         st.dataframe(show, use_container_width=True, hide_index=True, height=450)
 
     st.markdown("</div>", unsafe_allow_html=True)
