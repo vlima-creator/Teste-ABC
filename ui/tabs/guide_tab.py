@@ -21,8 +21,8 @@ def render_guide_tab():
         )
         st.markdown(
             """
-            1. **Seleção de Canal:** Na barra lateral, escolha entre **Mercado Livre** ou **Shopee**.
-            2. **Upload de Dados:** Insira os arquivos Excel (.xlsx ou .csv) extraídos diretamente das plataformas.
+            1. **Seleção de Canal:** Na barra lateral, escolha entre **Mercado Livre**, **Shopee** ou **Amazon**.
+            2. **Upload de Dados:** Insira os arquivos (.xlsx, .csv ou .txt) extraídos diretamente das plataformas.
             3. **Análise de Período:** No Dashboard, alterne entre as janelas de 30, 60, 90 ou 120 dias para ver a evolução.
             4. **Exportação:** Utilize a aba 'Listas e Exportação' para baixar as listas de ações prontas para execução.
             """
@@ -43,7 +43,7 @@ def render_guide_tab():
     st.markdown("---")
     st.markdown("### 📥 Onde baixar os relatórios precisos")
 
-    tab_ml, tab_shopee = st.tabs(["Mercado Livre", "Shopee"])
+    tab_ml, tab_shopee, tab_amazon = st.tabs(["Mercado Livre", "Shopee", "Amazon"])
 
     with tab_ml:
         st.markdown(
@@ -66,6 +66,17 @@ def render_guide_tab():
             """
         )
         st.info("💡 **Dica:** O arquivo `parentskudetail` é o mais importante para a análise da Curva ABC.")
+    
+    with tab_amazon:
+        st.markdown(
+            \"\"\"
+            | Relatório | Caminho na Amazon | Arquivo Esperado |
+            | :--- | :--- | :--- |
+            | **Relatórios de Negócios** | Relatórios > Relatórios de Negócios > Por ASIN > Detalhes de vendas e tráfego da página de detalhes por item pai | `BusinessReport...csv` ou `.txt` |
+            | **Painel de Vendas** | Relatórios > Painel de Vendas > Exportar | `SalesDashboard...csv` |
+            \"\"\"
+        )
+        st.info("💡 **Dica:** Os relatórios da Amazon podem ser exportados tanto em formato CSV quanto TXT.")
 
     st.markdown("---")
     st.markdown(

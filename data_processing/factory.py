@@ -6,22 +6,30 @@ from typing import List, Tuple, Optional
 import pandas as pd
 from .mercado_livre_processor import MercadoLivreProcessor
 from .shopee_processor import ShopeeProcessor
+from .amazon_processor import AmazonProcessor
 
 
 def detect_channel(files: list) -> str:
     """
-    Detecta o canal (Mercado Livre ou Shopee) baseado nos arquivos.
+    Detecta o canal (Mercado Livre, Shopee ou Amazon) baseado nos arquivos.
     Retorna: nome do canal
     """
     if not files:
         raise ValueError("Nenhum arquivo fornecido")
     
-    # Tenta detectar Shopee primeiro (múltiplos arquivos ou colunas específicas)
-    shopee_proc = ShopeeProcessor()
-    if shopee_proc.detect(files[0]):
-        return "Shopee"
+    # Lista de processadores disponíveis
+    processors = [
+        ShopeeProcessor(),
+        AmazonProcessor(),
+        MercadoLivreProcessor()
+    ]
     
-    # Caso contrário, assume Mercado Livre
+    # Tenta detectar o canal do primeiro arquivo
+    for processor in processors:
+        if processor.detect(files[0]):
+            return processor.canal_name
+    
+    # Caso contrário, assume Mercado Livre como fallback
     return "Mercado Livre"
 
 
@@ -47,8 +55,9 @@ def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.Data
     
     # Lista de processadores disponíveis
     processors = [
-        MercadoLivreProcessor(),
-        ShopeeProcessor()
+        ShopeeProcessor(),
+        AmazonProcessor(),
+        MercadoLivreProcessor()
     ]
     
     # Tenta detectar o canal do primeiro arquivo
@@ -61,7 +70,7 @@ def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.Data
     if detected_processor is None:
         raise ValueError(
             "Não foi possível detectar o canal do arquivo. "
-            "Certifique-se de que está usando um relatório válido do Mercado Livre ou Shopee."
+            "Certifique-se de que está usando um relatório válido do Mercado Livre, Shopee ou Amazon."
         )
     
     # Processa os arquivos
@@ -81,4 +90,4 @@ def get_available_channels() -> List[str]:
     """
     Retorna lista de canais disponíveis no sistema.
     """
-    return ["Mercado Livre", "Shopee"]
+    return ["Mercado Livre", "Shopee", "Amazon"]

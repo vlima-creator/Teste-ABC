@@ -2080,7 +2080,7 @@ with st.sidebar:
     <div class='sidebar-section-icon'>{package_svg}</div>
     <div>
       <div class='sidebar-section-title'>Upload de Dados</div>
-      <div class='sidebar-section-desc'>Mercado Livre ou Shopee</div>
+      <div class='sidebar-section-desc'>Mercado Livre, Shopee ou Amazon</div>
     </div>
   </div>
 </div>
@@ -2090,8 +2090,8 @@ with st.sidebar:
     
     uploaded_files = st.file_uploader(
         "📂 Carregar relatório(s) de vendas",
-        type=["xlsx", "xls"],
-        help="Suporta Mercado Livre e Shopee. Para Shopee, você pode enviar múltiplos arquivos.",
+        type=["xlsx", "xls", "csv", "txt"],
+        help="Suporta Mercado Livre, Shopee e Amazon. Para Shopee, você pode enviar múltiplos arquivos.",
         accept_multiple_files=True,
         key="main_files"
     )
