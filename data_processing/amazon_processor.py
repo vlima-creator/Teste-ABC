@@ -112,10 +112,12 @@ class AmazonProcessor(BaseProcessor):
         
         # Agrupar por SKU/MLB para consolidar dados de múltiplos arquivos
         # Usamos 'first' para o Título para manter o primeiro encontrado
+        # Para Buy Box, usamos a média se houver múltiplos registros
         df_final = df_final.groupby(['MLB', 'SKU']).agg({
             'Título': 'first',
             'Qtd total': 'sum',
-            'Fat total': 'sum'
+            'Fat total': 'sum',
+            'Buy Box %': 'mean'
         }).reset_index()
 
         # Filtro final para garantir que temos dados
@@ -176,6 +178,14 @@ class AmazonProcessor(BaseProcessor):
             except:
                 return 0
 
+        def clean_pct(v):
+            if pd.isna(v): return 0.0
+            try:
+                s = str(v).replace('%', '').replace(',', '.').strip()
+                return float(s) if s else 0.0
+            except:
+                return 0.0
+
         df_export = pd.DataFrame()
         
         # 1. Identificadores (ASIN/SKU)
@@ -211,6 +221,14 @@ class AmazonProcessor(BaseProcessor):
             df_export['Fat total'] = df[fat_col].apply(clean_money)
         else:
             df_export['Fat total'] = 0.0
+
+        # 5. Buy Box % (Oferta em Destaque)
+        buybox_patterns = ['porcentagem de ofertas em destaque', 'buy box percentage', 'buy box %', 'featured offer percentage', 'oferta em destaque']
+        buybox_col = next((c for c in df.columns if any(p in c.lower() for p in buybox_patterns)), None)
+        if buybox_col:
+            df_export['Buy Box %'] = df[buybox_col].apply(clean_pct)
+        else:
+            df_export['Buy Box %'] = 0.0
 
         # BUSCA AGRESSIVA por conteúdo se as colunas nomeadas falharem
         if df_export['Fat total'].sum() == 0 or df_export['Qtd total'].sum() == 0:

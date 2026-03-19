@@ -3154,6 +3154,7 @@ with tab3:
         "Curva 31-60", "Curva 0-30",
         "Qntd 31-60", "Qntd 0-30",
         "Fat. 0-30", "Fat total", "TM total",
+        "Buy Box %",
         "Ação sugerida", "Plano 7 dias", "Plano 15 dias", "Plano 30 dias"
     ]
 
@@ -3183,6 +3184,8 @@ with tab3:
         show["Fat. 0-30"] = show["Fat. 0-30"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
         show["Fat total"] = show["Fat total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
         show["TM total"] = show["TM total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+        if "Buy Box %" in show.columns:
+            show["Buy Box %"] = show["Buy Box %"].apply(lambda x: f"{float(x):.1f}%" if pd.notna(x) and x != "-" else "-")
 
         st.dataframe(show, use_container_width=True, hide_index=True, height=600)
 
