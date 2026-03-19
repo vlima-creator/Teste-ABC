@@ -24,7 +24,7 @@ class AmazonProcessor(BaseProcessor):
         try:
             file.seek(0)
             filename = getattr(file, 'name', '').lower()
-            content = file.read(4096).decode('utf-8', errors='ignore')
+            content = file.read(8192).decode('utf-8', errors='ignore')
             file.seek(0)
             
             amazon_indicators = [
@@ -33,13 +33,14 @@ class AmazonProcessor(BaseProcessor):
                 'ordered-product-sales', 'total-order-items', 'Nome do produto',
                 'ASIN pai', 'ASIN filho', 'Sessões', 'Unidades pedidas',
                 'Vendas de produtos pedidos', 'vendas-pedidas', 'unidades-pedidas',
-                'asin', 'seller-sku', 'product-title'
+                'asin', 'seller-sku', 'product-title', 'sales-channel', 'order-id'
             ]
             
             content_lower = content.lower()
             matches = sum(1 for ind in amazon_indicators if ind.lower() in content_lower)
             
-            if matches >= 2 or "businessreport" in filename or "salesdashboard" in filename:
+            # Detecção mais agressiva baseada em nomes de arquivos comuns da Amazon
+            if matches >= 2 or any(x in filename for x in ["businessreport", "salesdashboard", "amazon", "pedidos", "sales"]):
                 return True
                 
             return False
@@ -57,19 +58,17 @@ class AmazonProcessor(BaseProcessor):
         file.seek(0)
         
         df = None
-        encodings = ['utf-8', 'latin1', 'iso-8859-1', 'utf-16']
-        separators = [',', '\t', ';']
+        encodings = ['utf-8', 'latin1', 'iso-8859-1', 'utf-16', 'cp1252']
+        separators = [',', '\t', ';', '|']
         
         for enc in encodings:
             for sep in separators:
                 try:
                     file.seek(0)
-                    # Tenta ler as primeiras linhas para validar o separador
-                    df_tmp = pd.read_csv(file, sep=sep, encoding=enc, nrows=5)
+                    df_tmp = pd.read_csv(file, sep=sep, encoding=enc, nrows=10)
                     if len(df_tmp.columns) > 1:
                         file.seek(0)
                         df = pd.read_csv(file, sep=sep, encoding=enc)
-                        # Se leu apenas uma coluna ou poucas linhas, pode ser o separador errado
                         if df.shape[1] <= 1:
                             df = None
                             continue
@@ -80,26 +79,33 @@ class AmazonProcessor(BaseProcessor):
                 break
                 
         if df is None:
-            raise ValueError("Não foi possível ler o arquivo da Amazon. Verifique o formato CSV/TXT.")
+            raise ValueError("Não foi possível ler o arquivo da Amazon. Verifique se o formato é CSV ou TXT válido.")
 
-        # Limpeza básica de nomes de colunas
+        # Limpeza de nomes de colunas
         df.columns = [str(c).strip() for c in df.columns]
         
-        # Funções auxiliares de limpeza
+        # Funções de limpeza de dados
         def clean_money(v):
             if pd.isna(v): return 0.0
-            v = str(v).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
-            # Trata casos como "1.234,56" -> "1234.56"
-            if '.' in v and ',' in v:
-                v = v.replace('.', '').replace(',', '.')
-            elif ',' in v:
-                # Se houver apenas uma vírgula e ela parecer um separador decimal
-                if len(v.split(',')) == 2:
-                    v = v.replace(',', '.')
+            s = str(v).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
+            if not s: return 0.0
+            
+            # Lógica para tratar 1.234,56 ou 1,234.56 ou 1234,56
+            if ',' in s and '.' in s:
+                if s.find('.') < s.find(','): # 1.234,56
+                    s = s.replace('.', '').replace(',', '.')
+                else: # 1,234.56
+                    s = s.replace(',', '')
+            elif ',' in s:
+                # Verifica se a vírgula parece decimal (ex: 10,50) ou milhar (ex: 1,000)
+                parts = s.split(',')
+                if len(parts) == 2 and len(parts[1]) <= 2:
+                    s = s.replace(',', '.')
                 else:
-                    v = v.replace(',', '')
+                    s = s.replace(',', '')
+            
             try:
-                cleaned = re.sub(r'[^0-9.]', '', v)
+                cleaned = re.sub(r'[^0-9.]', '', s)
                 return float(cleaned) if cleaned else 0.0
             except:
                 return 0.0
@@ -107,129 +113,90 @@ class AmazonProcessor(BaseProcessor):
         def clean_int(v):
             if pd.isna(v): return 0
             try:
-                # Remove decimais se existirem (ex: "10.0")
-                v_str = str(v).split('.')[0].split(',')[0]
-                cleaned = re.sub(r'[^0-9]', '', v_str)
+                s = str(v).split('.')[0].split(',')[0]
+                cleaned = re.sub(r'[^0-9]', '', s)
                 return int(cleaned) if cleaned else 0
             except:
                 return 0
 
-        # Mapeamento flexível com busca profunda
         df_export = pd.DataFrame()
         
-        # 1. Busca por MLB (ASIN Pai)
-        mlb_col = next((c for c in df.columns if any(p in c.lower() for p in ['(parent) asin', 'asin pai', 'parent-asin', 'asin'])), None)
-        df_export['MLB'] = df[mlb_col].astype(str) if mlb_col else "N/A"
+        # 1. Identificadores (ASIN/SKU)
+        mlb_patterns = ['(parent) asin', 'asin pai', 'parent-asin', 'asin', 'sku', 'seller-sku', 'item-id']
+        mlb_col = next((c for c in df.columns if any(p in c.lower() for p in mlb_patterns)), df.columns[0])
+        df_export['MLB'] = df[mlb_col].astype(str)
+        df_export['SKU'] = df_export['MLB']
         
-        # 2. Busca por SKU
-        sku_col = next((c for c in df.columns if any(p in c.lower() for p in ['sku', 'seller-sku', '(child) asin', 'asin filho'])), None)
-        df_export['SKU'] = df[sku_col].astype(str) if sku_col else df_export['MLB']
+        # 2. Título
+        title_patterns = ['product-name', 'nome do produto', 'title', 'título', 'titulo', 'product-title', 'nome']
+        title_col = next((c for c in df.columns if any(p in c.lower() for p in title_patterns)), None)
+        if title_col:
+            df_export['Título'] = df[title_col].astype(str)
+        else:
+            # Se não achar título, tenta a segunda coluna se for string
+            if df.shape[1] > 1 and df.iloc[:, 1].dtype == object:
+                df_export['Título'] = df.iloc[:, 1].astype(str)
+            else:
+                df_export['Título'] = "Produto " + df_export['MLB']
         
-        # 3. Busca por Título
-        title_col = next((c for c in df.columns if any(p in c.lower() for p in ['product-name', 'nome do produto', 'title', 'título', 'titulo', 'nome-do-produto', 'product-title'])), None)
-        df_export['Título'] = df[title_col].astype(str) if title_col else "Produto sem título"
-        
-        # 4. Busca por Quantidade (Busca profunda)
-        qty_potentials = ['units-ordered', 'unidades pedidas', 'units ordered', 'unidades-pedidas', 'total units', 'quantidade', 'qtd', 'units']
-        qty_col = next((c for c in df.columns if any(p in c.lower() for p in qty_potentials)), None)
+        # 3. Quantidade
+        qty_patterns = ['units-ordered', 'unidades pedidas', 'units ordered', 'unidades-pedidas', 'total units', 'quantidade', 'qtd', 'units', 'quantity']
+        qty_col = next((c for c in df.columns if any(p in c.lower() for p in qty_patterns)), None)
         if qty_col:
             df_export['Qtd total'] = df[qty_col].apply(clean_int)
         else:
-            # Tenta encontrar qualquer coluna que tenha "unidades" ou "units" no nome
-            qty_col = next((c for c in df.columns if 'unid' in c.lower() or 'unit' in c.lower()), None)
-            if qty_col:
-                df_export['Qtd total'] = df[qty_col].apply(clean_int)
-            else:
-                df_export['Qtd total'] = 0
-        
-        # 5. Busca por Faturamento (Busca profunda)
-        fat_potentials = ['ordered-product-sales', 'vendas de produtos pedidos', 'ordered product sales', 'vendas-de-produtos-pedidos', 'revenue', 'faturamento', 'vendas', 'sales', 'total-sales']
-        fat_col = next((c for c in df.columns if any(p in c.lower() for p in fat_potentials)), None)
+            df_export['Qtd total'] = 0
+            
+        # 4. Faturamento
+        fat_patterns = ['ordered-product-sales', 'vendas de produtos pedidos', 'ordered product sales', 'vendas-de-produtos-pedidos', 'revenue', 'faturamento', 'vendas', 'sales', 'total-sales', 'price', 'preço', 'valor']
+        fat_col = next((c for c in df.columns if any(p in c.lower() for p in fat_patterns)), None)
         if fat_col:
             df_export['Fat total'] = df[fat_col].apply(clean_money)
         else:
-            # Tenta encontrar colunas que pareçam faturamento pelo nome
-            fat_col = next((c for c in df.columns if 'venda' in c.lower() or 'fatur' in c.lower() or 'price' in c.lower()), None)
-            if fat_col:
-                df_export['Fat total'] = df[fat_col].apply(clean_money)
-            else:
-                df_export['Fat total'] = 0.0
+            df_export['Fat total'] = 0.0
 
-        # Se não encontrou dados pelas colunas nomeadas, tenta busca por tipo de conteúdo
-        if df_export['Fat total'].sum() == 0 and df_export['Qtd total'].sum() == 0:
+        # BUSCA AGRESSIVA por conteúdo se as colunas nomeadas falharem
+        if df_export['Fat total'].sum() == 0 or df_export['Qtd total'].sum() == 0:
             for c in df.columns:
-                if any(p in c.lower() for p in ['id', 'sku', 'asin', 'nome', 'title', 'date', 'data']):
-                    continue
+                # Pula colunas que já sabemos serem de texto
+                if c in [mlb_col, title_col]: continue
                 
-                sample = df[c].astype(str).dropna().head(20)
-                # Tenta detectar se é monetário
-                sample_str = "".join(sample.astype(str))
-                if any(curr in sample_str for curr in ['R$', '$', ',']) or '.' in sample_str:
+                sample = df[c].dropna().head(20).astype(str)
+                if sample.empty: continue
+                
+                # Testa se parece faturamento (tem símbolo de moeda ou decimais)
+                sample_str = "".join(sample)
+                if any(curr in sample_str for curr in ['R$', '$', ',']) or ('.' in sample_str and not all(x.isdigit() for x in sample)):
                     vals = df[c].apply(clean_money)
-                    if vals.sum() > 0:
-                        # Se já tivermos faturamento, não substitui a menos que o novo seja maior (mais provável ser o total)
-                        if 'Fat total' not in df_export.columns or vals.sum() > df_export['Fat total'].sum():
-                            df_export['Fat total'] = vals
-                        continue
+                    if vals.sum() > df_export['Fat total'].sum():
+                        df_export['Fat total'] = vals
                 
-                # Tenta detectar se é inteiro (quantidade)
-                try:
+                # Testa se parece quantidade (apenas números inteiros)
+                if all(re.match(r'^\d+$', str(x).split('.')[0]) for x in sample if str(x).strip()):
                     vals_int = df[c].apply(clean_int)
-                    if vals_int.sum() > 0 and df_export['Qtd total'].sum() == 0:
+                    # Se a coluna de faturamento ainda estiver vazia e essa tiver valores altos, 
+                    # pode ser faturamento sem formatação. Se forem valores baixos, é quantidade.
+                    if vals_int.mean() > 100 and df_export['Fat total'].sum() == 0:
+                        df_export['Fat total'] = vals_int.astype(float)
+                    elif vals_int.sum() > df_export['Qtd total'].sum():
                         df_export['Qtd total'] = vals_int
-                except:
-                    pass
 
-        # Garantia de valores padrão se nada for encontrado
-        if 'Qtd total' not in df_export.columns: df_export['Qtd total'] = 0
-        if 'Fat total' not in df_export.columns: df_export['Fat total'] = 0.0
-        
-        # Se MLB ou SKU ainda estão vazios ou N/A, tenta usar a primeira coluna do DF original
-        if not df_export.empty and ((df_export['MLB'] == "N/A").all() or (df_export['SKU'] == "N/A").all()):
-            df_export['MLB'] = df.iloc[:, 0].astype(str)
-            df_export['SKU'] = df_export['MLB']
-            # Se o título estiver genérico, tenta a segunda coluna do DF original
-            if (df_export['Título'] == "Produto sem título").all() and df.shape[1] > 1:
-                df_export['Título'] = df.iloc[:, 1].astype(str)
-
-        # Remove linhas sem dados significativos
+        # Filtro final e Fallback de Erro com Diagnóstico
         df_export = df_export[(df_export['Fat total'] > 0) | (df_export['Qtd total'] > 0)].copy()
         
         if df_export.empty:
-            # Fallback final: se não achou nada, mas o arquivo tem colunas numéricas, usa a primeira que encontrar
-            numeric_cols = df.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) >= 1:
-                df_export = pd.DataFrame()
-                df_export['Fat total'] = df[numeric_cols[0]].fillna(0)
-                df_export['Qtd total'] = df[numeric_cols[0]].fillna(0).astype(int)
-                df_export['MLB'] = df.iloc[:, 0].astype(str)
-                df_export['SKU'] = df_export['MLB']
-                df_export['Título'] = "Produto " + df_export['MLB']
-                
-                # Re-filtra
-                df_export = df_export[(df_export['Fat total'] > 0) | (df_export['Qtd total'] > 0)].copy()
+            cols_found = ", ".join(df.columns[:15])
+            raise ValueError(
+                f"Nenhum dado de venda ou faturamento encontrado. "
+                f"Colunas detectadas no arquivo: [{cols_found}]. "
+                "Verifique se o arquivo contém dados de pedidos/vendas."
+            )
 
-        # Se AINDA estiver vazio, levanta o erro original
-        if df_export.empty:
-            raise ValueError("Nenhum dado de venda ou faturamento encontrado no arquivo. Verifique se o relatório contém dados de pedidos.")
-
-        # Métricas extras (opcional)
-        conv_col = next((c for c in df.columns if any(p in c.lower() for p in ['percentage', 'conversão', 'conversao', 'taxa'])), None)
-        if conv_col:
-            def clean_pct(v):
-                if pd.isna(v): return 0.0
-                v = str(v).replace('%', '').replace(',', '.').strip()
-                try:
-                    return float(v) / 100
-                except:
-                    return 0.0
-            df_export['_amazon_taxa_conversao'] = df[conv_col].apply(clean_pct)
-
-        # Ticket Médio e Períodos
+        # Preenchimento de métricas padrão
         df_export['TM total'] = df_export.apply(lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0, axis=1)
-        for periodo in ['0-30', '31-60', '61-90', '91-120']:
-            df_export[f'Qntd {periodo}'] = df_export['Qtd total'] if periodo == '0-30' else 0
-            df_export[f'Fat. {periodo}'] = df_export['Fat total'] if periodo == '0-30' else 0.0
+        for p in ['0-30', '31-60', '61-90', '91-120']:
+            df_export[f'Qntd {p}'] = df_export['Qtd total'] if p == '0-30' else 0
+            df_export[f'Fat. {p}'] = df_export['Fat total'] if p == '0-30' else 0.0
             
         # Curva ABC
         df_export = self.calculate_abc_curve(df_export, 'Fat total')
