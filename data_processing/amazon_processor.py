@@ -185,13 +185,12 @@ class AmazonProcessor(BaseProcessor):
         if 'Fat total' not in df_export.columns: df_export['Fat total'] = 0.0
         
         # Se MLB ou SKU ainda estão vazios ou N/A, tenta usar a primeira coluna do DF original
-        if (df_export['MLB'] == "N/A").all() or (df_export['SKU'] == "N/A").all():
+        if not df_export.empty and ((df_export['MLB'] == "N/A").all() or (df_export['SKU'] == "N/A").all()):
             df_export['MLB'] = df.iloc[:, 0].astype(str)
             df_export['SKU'] = df_export['MLB']
-            if df_export['Título'].iloc[0] == "Produto sem título":
-                # Tenta a segunda coluna para título se a primeira for ID
-                if df.shape[1] > 1:
-                    df_export['Título'] = df.iloc[:, 1].astype(str)
+            # Se o título estiver genérico, tenta a segunda coluna do DF original
+            if (df_export['Título'] == "Produto sem título").all() and df.shape[1] > 1:
+                df_export['Título'] = df.iloc[:, 1].astype(str)
 
         # Remove linhas sem dados significativos
         df_export = df_export[(df_export['Fat total'] > 0) | (df_export['Qtd total'] > 0)].copy()
