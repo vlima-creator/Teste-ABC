@@ -69,12 +69,12 @@ def render_guide_tab():
     
     with tab_amazon:
         st.markdown(
-            \"\"\"
+            """
             | Relatório | Caminho na Amazon | Arquivo Esperado |
             | :--- | :--- | :--- |
             | **Relatórios de Negócios** | Relatórios > Relatórios de Negócios > Por ASIN > Detalhes de vendas e tráfego da página de detalhes por item pai | `BusinessReport...csv` ou `.txt` |
             | **Painel de Vendas** | Relatórios > Painel de Vendas > Exportar | `SalesDashboard...csv` |
-            \"\"\"
+            """
         )
         st.info("💡 **Dica:** Os relatórios da Amazon podem ser exportados tanto em formato CSV quanto TXT.")
 
