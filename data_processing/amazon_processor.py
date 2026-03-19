@@ -54,35 +54,83 @@ class AmazonProcessor(BaseProcessor):
         if not files:
             raise ValueError("Nenhum arquivo fornecido")
             
-        file = files[0]
-        file.seek(0)
+        all_dfs = []
         
-        df = None
-        encodings = ['utf-8', 'latin1', 'iso-8859-1', 'utf-16', 'cp1252']
-        separators = [',', '\t', ';', '|']
-        
-        for enc in encodings:
-            for sep in separators:
-                try:
-                    file.seek(0)
-                    df_tmp = pd.read_csv(file, sep=sep, encoding=enc, nrows=10)
-                    if len(df_tmp.columns) > 1:
+        for file in files:
+            file.seek(0)
+            df_file = None
+            encodings = ['utf-8', 'latin1', 'iso-8859-1', 'utf-16', 'cp1252']
+            separators = [',', '\t', ';', '|']
+            
+            for enc in encodings:
+                for sep in separators:
+                    try:
                         file.seek(0)
-                        df = pd.read_csv(file, sep=sep, encoding=enc)
-                        if df.shape[1] <= 1:
-                            df = None
-                            continue
-                        break
-                except:
-                    continue
-            if df is not None:
-                break
+                        df_tmp = pd.read_csv(file, sep=sep, encoding=enc, nrows=10)
+                        if len(df_tmp.columns) > 1:
+                            file.seek(0)
+                            df_file = pd.read_csv(file, sep=sep, encoding=enc)
+                            if df_file.shape[1] <= 1:
+                                df_file = None
+                                continue
+                            break
+                    except:
+                        continue
+                if df_file is not None:
+                    break
+            
+            if df_file is not None:
+                # Limpeza de nomes de colunas
+                df_file.columns = [str(c).strip() for c in df_file.columns]
                 
-        if df is None:
-            raise ValueError("Não foi possível ler o arquivo da Amazon. Verifique se o formato é CSV ou TXT válido.")
+                # Processar este arquivo individualmente
+                df_processed = self._process_single_df(df_file)
+                if not df_processed.empty:
+                    all_dfs.append(df_processed)
+        
+        if not all_dfs:
+            # Se nenhum arquivo foi processado com sucesso, tenta dar um erro informativo baseado no primeiro arquivo
+            file = files[0]
+            file.seek(0)
+            df_err = pd.read_csv(file, sep=None, engine='python', nrows=5)
+            cols_found = ", ".join(df_err.columns[:15])
+            raise ValueError(
+                f"Nenhum dado de venda ou faturamento encontrado nos arquivos enviados. "
+                f"Colunas detectadas no primeiro arquivo: [{cols_found}]. "
+                "Verifique se os arquivos contêm dados de pedidos/vendas com valores maiores que zero."
+            )
 
-        # Limpeza de nomes de colunas
-        df.columns = [str(c).strip() for c in df.columns]
+        # Combinar todos os DataFrames processados
+        df_final = pd.concat(all_dfs, ignore_index=True)
+        
+        # Agrupar por SKU/MLB para consolidar dados de múltiplos arquivos
+        df_final = df_final.groupby(['MLB', 'SKU', 'Título']).agg({
+            'Qtd total': 'sum',
+            'Fat total': 'sum'
+        }).reset_index()
+
+        # Filtro final para garantir que temos dados
+        df_final = df_final[(df_final['Fat total'] > 0) | (df_final['Qtd total'] > 0)].copy()
+        
+        if df_final.empty:
+            raise ValueError("Após processar todos os arquivos, nenhum dado de venda ou faturamento válido foi encontrado.")
+
+        # Preenchimento de métricas padrão
+        df_final['TM total'] = df_final.apply(lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0, axis=1)
+        for p in ['0-30', '31-60', '61-90', '91-120']:
+            df_final[f'Qntd {p}'] = df_final['Qtd total'] if p == '0-30' else 0
+            df_final[f'Fat. {p}'] = df_final['Fat total'] if p == '0-30' else 0.0
+            
+        # Curva ABC
+        df_final = self.calculate_abc_curve(df_final, 'Fat total')
+        df_final['Curva 0-30'] = df_final['curva_abc']
+        for p in ['31-60', '61-90', '91-120']: df_final[f'Curva {p}'] = '-'
+        df_final = df_final.drop(columns=['curva_abc'], errors='ignore')
+        
+        return df_final, pd.DataFrame(), pd.DataFrame()
+
+    def _process_single_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Processa um único DataFrame da Amazon."""
         
         # Funções de limpeza de dados
         def clean_money(v):
@@ -181,27 +229,7 @@ class AmazonProcessor(BaseProcessor):
                     elif vals_int.sum() > df_export['Qtd total'].sum():
                         df_export['Qtd total'] = vals_int
 
-        # Filtro final e Fallback de Erro com Diagnóstico
+        # Filtro para remover linhas sem dados
         df_export = df_export[(df_export['Fat total'] > 0) | (df_export['Qtd total'] > 0)].copy()
         
-        if df_export.empty:
-            cols_found = ", ".join(df.columns[:15])
-            raise ValueError(
-                f"Nenhum dado de venda ou faturamento encontrado. "
-                f"Colunas detectadas no arquivo: [{cols_found}]. "
-                "Verifique se o arquivo contém dados de pedidos/vendas."
-            )
-
-        # Preenchimento de métricas padrão
-        df_export['TM total'] = df_export.apply(lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0, axis=1)
-        for p in ['0-30', '31-60', '61-90', '91-120']:
-            df_export[f'Qntd {p}'] = df_export['Qtd total'] if p == '0-30' else 0
-            df_export[f'Fat. {p}'] = df_export['Fat total'] if p == '0-30' else 0.0
-            
-        # Curva ABC
-        df_export = self.calculate_abc_curve(df_export, 'Fat total')
-        df_export['Curva 0-30'] = df_export['curva_abc']
-        for p in ['31-60', '61-90', '91-120']: df_export[f'Curva {p}'] = '-'
-        df_export = df_export.drop(columns=['curva_abc'], errors='ignore')
-        
-        return df_export, pd.DataFrame(), pd.DataFrame()
+        return df_export
