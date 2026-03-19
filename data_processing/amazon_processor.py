@@ -90,13 +90,20 @@ class AmazonProcessor(BaseProcessor):
         
         if not all_dfs:
             # Se nenhum arquivo foi processado com sucesso, tenta dar um erro informativo baseado no primeiro arquivo
-            file = files[0]
-            file.seek(0)
-            df_err = pd.read_csv(file, sep=None, engine='python', nrows=5)
-            cols_found = ", ".join(df_err.columns[:15])
+            try:
+                file = files[0]
+                file.seek(0)
+                # Lê o conteúdo como string para evitar erro de bytes no Sniffer do pandas
+                content = file.read(1024).decode('utf-8', errors='ignore')
+                file.seek(0)
+                df_err = pd.read_csv(io.StringIO(content), sep=None, engine='python', nrows=5)
+                cols_found = ", ".join(df_err.columns[:15])
+            except:
+                cols_found = "Desconhecidas"
+                
             raise ValueError(
                 f"Nenhum dado de venda ou faturamento encontrado nos arquivos enviados. "
-                f"Colunas detectadas no primeiro arquivo: [{cols_found}]. "
+                f"Colunas detectadas: [{cols_found}]. "
                 "Verifique se os arquivos contêm dados de pedidos/vendas com valores maiores que zero."
             )
 
@@ -104,7 +111,9 @@ class AmazonProcessor(BaseProcessor):
         df_final = pd.concat(all_dfs, ignore_index=True)
         
         # Agrupar por SKU/MLB para consolidar dados de múltiplos arquivos
-        df_final = df_final.groupby(['MLB', 'SKU', 'Título']).agg({
+        # Usamos 'first' para o Título para manter o primeiro encontrado
+        df_final = df_final.groupby(['MLB', 'SKU']).agg({
+            'Título': 'first',
             'Qtd total': 'sum',
             'Fat total': 'sum'
         }).reset_index()
@@ -196,7 +205,7 @@ class AmazonProcessor(BaseProcessor):
             df_export['Qtd total'] = 0
             
         # 4. Faturamento
-        fat_patterns = ['ordered-product-sales', 'vendas de produtos pedidos', 'ordered product sales', 'vendas-de-produtos-pedidos', 'revenue', 'faturamento', 'vendas', 'sales', 'total-sales', 'price', 'preço', 'valor']
+        fat_patterns = ['ordered-product-sales', 'vendas de produtos pedidos', 'ordered product sales', 'vendas-de-produtos-pedidos', 'revenue', 'faturamento', 'vendas', 'sales', 'total-sales', 'price', 'preço', 'valor', 'item-price']
         fat_col = next((c for c in df.columns if any(p in c.lower() for p in fat_patterns)), None)
         if fat_col:
             df_export['Fat total'] = df[fat_col].apply(clean_money)
