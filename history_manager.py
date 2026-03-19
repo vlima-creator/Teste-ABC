@@ -31,11 +31,13 @@ def init_db():
             organic_valor REAL
         )
     ''')
-    # Verificar se a coluna cliente existe (para migração de bancos existentes)
+    # Verificar se colunas existem (para migração de bancos existentes)
     cursor.execute("PRAGMA table_info(snapshots)")
     columns = [col[1] for col in cursor.fetchall()]
     if 'cliente' not in columns:
         cursor.execute("ALTER TABLE snapshots ADD COLUMN cliente TEXT DEFAULT 'Geral'")
+    if 'buybox_avg' not in columns:
+        cursor.execute("ALTER TABLE snapshots ADD COLUMN buybox_avg REAL DEFAULT 0.0")
     conn.commit()
     conn.close()
 

@@ -16,6 +16,7 @@ from ui.components.shopee_components import (
 )
 from ui.components.helpers import to_xlsx_bytes, br_money, br_int, safe_div, pct, ensure_cols
 from ui.tabs.guide_tab import render_guide_tab
+from ui.components.amazon_components import render_amazon_buybox_metrics, get_amazon_buybox_alerts
 
 st.set_page_config(page_title="Curva ABC, Diagnóstico e Ações", layout="wide")
 
@@ -2442,6 +2443,17 @@ def frente_bucket(idx):
 
 plan["Frente"] = [frente_bucket(i) for i in plan.index]
 
+# Alertas de Buybox para Amazon
+if st.session_state.get('canal') == 'Amazon':
+    buybox_alerts = get_amazon_buybox_alerts(df_f)
+    for alert in buybox_alerts:
+        sku = alert['SKU']
+        if sku in plan['SKU'].values:
+            idx = plan[plan['SKU'] == sku].index[0]
+            plan.at[idx, "Ação sugerida"] = alert['Motivo']
+            plan.at[idx, "Plano 7 dias"] = alert['Ação']
+            plan.at[idx, "Frente"] = "CORREÇÃO"
+
 # =========================
 # Diagnóstico macro
 # =========================
@@ -2505,22 +2517,23 @@ if not df_ads.empty:
         ads_valor_snap = float(ads_row_snap.get('ads_value', 0))
         organic_valor_snap = float(ads_row_snap.get('organic_value', 0))
 
-current_metrics = {
-    "cliente": cliente_atual,
-    "canal": canal_atual,
-    "total_ads": total_ads,
-    "total_fat": tt_fat,
-    "total_qty": tt_qty,
-    "conc_a": float(conc_A_0_30),
-    "tm_atual": tm_geral,
-    "fuga_receita_count": fuga_count,
-    "fuga_receita_valor": fuga_valor,
-    "ancoras_count": ancoras_count,
-    "ancoras_valor": ancoras_valor,
-    "ads_pct": ads_pct_snap,
-    "ads_valor": ads_valor_snap,
-    "organic_valor": organic_valor_snap
-}
+    current_metrics = {
+        'cliente': cliente_atual,
+        'canal': canal_atual,
+        'total_ads': total_ads,
+        'total_fat': tt_fat,
+        'total_qty': tt_qty,
+        'conc_a': float(conc_A_0_30),
+        'tm_atual': float(tm_0_30),
+        'fuga_receita_count': fuga_count,
+        'fuga_receita_valor': fuga_valor,
+        'ancoras_count': ancoras_count,
+        'ancoras_valor': ancoras_valor,
+        'ads_pct': float(ads_pct_snap),
+        'ads_valor': float(ads_valor_snap),
+        'organic_valor': float(organic_valor_snap),
+        'buybox_avg': float(df_f['Buy Box %'].mean()) if 'Buy Box %' in df_f.columns else 0.0
+    }
 
 # Botão para salvar snapshot
 with st.sidebar:
@@ -2770,6 +2783,13 @@ with tab1:
         
         # Top Produtos
         render_shopee_top_products(df_f, top_n=10)
+
+    elif st.session_state.get('canal') == 'Amazon':
+        # Seções específicas da Amazon
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Performance de Buybox
+        render_amazon_buybox_metrics(df_f)
 
     section_header("Faturamento por Curva e Período", "Comparativo entre as janelas de tempo", "📊", "green")
     rev_rows = []

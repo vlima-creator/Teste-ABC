@@ -113,11 +113,12 @@ class AmazonProcessor(BaseProcessor):
         # Agrupar por SKU/MLB para consolidar dados de múltiplos arquivos
         # Usamos 'first' para o Título para manter o primeiro encontrado
         # Para Buy Box, usamos a média se houver múltiplos registros
+        # Se houver faturamento sem Buybox (ex: arquivos diferentes), tentamos preservar o valor de Buybox
         df_final = df_final.groupby(['MLB', 'SKU']).agg({
             'Título': 'first',
             'Qtd total': 'sum',
             'Fat total': 'sum',
-            'Buy Box %': 'mean'
+            'Buy Box %': lambda x: x[x > 0].mean() if (x > 0).any() else 0.0
         }).reset_index()
 
         # Filtro final para garantir que temos dados
@@ -181,8 +182,18 @@ class AmazonProcessor(BaseProcessor):
         def clean_pct(v):
             if pd.isna(v): return 0.0
             try:
-                s = str(v).replace('%', '').replace(',', '.').strip()
-                return float(s) if s else 0.0
+                # Remove símbolos, espaços e lida com separadores decimais (vírgula para ponto)
+                s = str(v).replace('%', '').replace('\xa0', '').strip()
+                if ',' in s and '.' in s:
+                    if s.find('.') < s.find(','): s = s.replace('.', '').replace(',', '.')
+                    else: s = s.replace(',', '')
+                elif ',' in s:
+                    parts = s.split(',')
+                    if len(parts) == 2 and len(parts[1]) <= 2: s = s.replace(',', '.')
+                    else: s = s.replace(',', '')
+                
+                cleaned = re.sub(r'[^0-9.]', '', s)
+                return float(cleaned) if cleaned else 0.0
             except:
                 return 0.0
 
