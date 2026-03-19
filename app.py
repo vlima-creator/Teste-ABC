@@ -2139,12 +2139,9 @@ try:
         </div>
         """, unsafe_allow_html=True)
     
-    # Processa conforme o canal
-    if canal_detectado == 'Shopee':
-        from data_processing.factory import detect_and_process
-        _, df, df_logistics, df_ads = detect_and_process(uploaded_files)
-    else:  # Mercado Livre - usa lógica original
-        df, df_logistics, df_ads = load_main(uploaded_files[0])
+    # Processa conforme o canal detectado
+    from data_processing.factory import detect_and_process
+    _, df, df_logistics, df_ads = detect_and_process(uploaded_files)
     
     # Garantir que df_ads e df_logistics não sejam None
     if df_ads is None:
