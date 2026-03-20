@@ -2707,11 +2707,11 @@ with tab1:
             if not log_row.empty:
                 log_row = log_row.iloc[0]
                 render_logistics_section(
-                    full_pct=log_row['full_pct'],
-                    correios_pct=log_row['correios_pct'],
-                    flex_pct=log_row['flex_pct'],
-                    coleta_pct=log_row['coleta_pct'],
-                    outros_pct=log_row['outros_pct'],
+                    full_pct=log_row.get("full_pct", 0.0),
+                    correios_pct=log_row.get("correios_pct", 0.0),
+                    flex_pct=log_row.get("flex_pct", 0.0),
+                    coleta_pct=log_row.get("coleta_pct", 0.0),
+                    outros_pct=log_row.get("outros_pct", 0.0),
                     full_fat=float(log_row.get('full_fat', 0)),
                     correios_fat=float(log_row.get('correios_fat', 0)),
                     flex_fat=float(log_row.get('flex_fat', 0)),
