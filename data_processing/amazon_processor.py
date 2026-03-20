@@ -118,14 +118,15 @@ class AmazonProcessor(BaseProcessor):
             'Título': 'first',
             'Qtd total': 'sum',
             'Fat total': 'sum',
-            'Buy Box %': lambda x: x[x > 0].mean() if (x > 0).any() else 0.0
+            'Buy Box %': 'mean'
         }).reset_index()
 
         # Filtro final para garantir que temos dados
-        df_final = df_final[(df_final['Fat total'] > 0) | (df_final['Qtd total'] > 0)].copy()
+        # Mantemos produtos com Buybox mesmo sem vendas, pois o usuário quer monitorar o catálogo ativo
+        df_final = df_final[(df_final['Fat total'] > 0) | (df_final['Qtd total'] > 0) | (df_final['Buy Box %'] > 0)].copy()
         
         if df_final.empty:
-            raise ValueError("Após processar todos os arquivos, nenhum dado de venda ou faturamento válido foi encontrado.")
+            raise ValueError("Após processar todos os arquivos, nenhum dado válido (vendas ou Buybox) foi encontrado.")
 
         # Preenchimento de métricas padrão
         df_final['TM total'] = df_final.apply(lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0, axis=1)
@@ -267,7 +268,7 @@ class AmazonProcessor(BaseProcessor):
                     elif vals_int.sum() > df_export['Qtd total'].sum():
                         df_export['Qtd total'] = vals_int
 
-        # Filtro para remover linhas sem dados
-        df_export = df_export[(df_export['Fat total'] > 0) | (df_export['Qtd total'] > 0)].copy()
+        # Filtro para remover linhas sem identificador
+        df_export = df_export[df_export['MLB'] != 'nan'].copy()
         
         return df_export
