@@ -235,6 +235,10 @@ class MercadoLivreProcessor(BaseProcessor):
         ref = base['data'].max()
         base['dias'] = (ref - base['data']).dt.days
         
+        # Filtra para considerar apenas os últimos 120 dias (4 meses)
+        # Isso evita que dados de 5 ou 6 meses sejam acumulados no último bucket
+        base = base[base['dias'] <= 120].copy()
+        
         def bucket(d):
             if d <= 30:
                 return '0-30'
