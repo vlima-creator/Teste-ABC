@@ -5,78 +5,102 @@ def render_guide_tab():
         """
         <div class='hero-header'>
             <div class='hero-title'>Guia de Uso e Relatórios</div>
-            <div class='hero-subtitle'>Aprenda a extrair o máximo da ferramenta e quais dados são necessários.</div>
+            <div class='hero-subtitle'>Aprenda a extrair o máximo da ferramenta e quais dados são necessários para a sua análise.</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("### 🚀 Como usar a ferramenta")
-        st.info(
-            "Esta ferramenta foi desenhada para automatizar a análise de performance da sua conta, "
-            "transformando relatórios brutos em insights estratégicos."
-        )
+    # Tópico 1: Como Começar - Passo a Passo
+    with st.expander("🚀 Como Começar - Passo a Passo", expanded=True):
         st.markdown(
             """
-            1. **Seleção de Canal:** Na barra lateral, escolha entre **Mercado Livre**, **Shopee** ou **Amazon**.
-            2. **Upload de Dados:** Insira os arquivos (.xlsx, .csv ou .txt) extraídos diretamente das plataformas.
-            3. **Análise de Período:** No Dashboard, alterne entre as janelas de 30, 60, 90 ou 120 dias para ver a evolução.
-            4. **Exportação:** Utilize a aba 'Listas e Exportação' para baixar as listas de ações prontas para execução.
+            Para iniciar sua análise, siga este fluxo otimizado:
+            
+            1.  **Seleção do Canal:** No menu lateral, escolha a plataforma que deseja analisar (**Amazon**, **Mercado Livre** ou **Shopee**).
+            2.  **Preparação dos Arquivos:** Certifique-se de ter baixado os relatórios brutos das plataformas (conforme a tabela abaixo). Não é necessário editar os arquivos.
+            3.  **Upload de Dados:** Arraste e solte os arquivos na área de upload. A ferramenta detectará automaticamente o formato e processará os dados.
+            4.  **Navegação no Dashboard:** 
+                *   Use os **filtros de data** para ajustar o período de análise.
+                *   Explore a **Curva ABC** para identificar seus produtos de maior impacto.
+                *   Analise as **Métricas de Saúde** para ver quais produtos precisam de atenção imediata.
+            5.  **Ações e Exportação:** Vá até a aba 'Listas e Exportação' para baixar o plano de ação pronto para ser executado na sua operação.
             """
         )
 
-    with col2:
-        st.markdown("### 📊 O que conseguimos analisar")
+    # Tópico 2: Localizando os Relatórios
+    with st.expander("📂 Localizando os Relatórios"):
+        tab_amazon, tab_ml, tab_shopee = st.tabs(["Amazon", "Mercado Livre", "Shopee"])
+        
+        with tab_amazon:
+            st.markdown(
+                """
+                | Relatório | Caminho na Amazon Seller Central | Arquivo Esperado |
+                | :--- | :--- | :--- |
+                | **Relatório de Negócios** | Relatórios > Relatórios de Negócios > Por ASIN > Detalhes de vendas e tráfego da página de detalhes por item pai | `BusinessReport...csv` ou `.txt` |
+                | **Painel de Vendas** | Relatórios > Painel de Vendas > Exportar | `SalesDashboard...csv` |
+                
+                **Dica:** O relatório de "Detalhes de vendas e tráfego" é o mais completo, pois contém dados de **Sessões** e **Buy Box %**.
+                """
+            )
+
+        with tab_ml:
+            st.markdown(
+                """
+                | Relatório | Caminho no Mercado Livre | Finalidade |
+                | :--- | :--- | :--- |
+                | **Vendas** | Vendas > Vendas > Ícone de Download (Excel) | Base de pedidos, faturamento e status de logística. |
+                
+                **Atenção:** Carregue o arquivo `.xlsx` original sem alterar nomes de colunas.
+                """
+            )
+
+        with tab_shopee:
+            st.markdown(
+                """
+                | Relatório | Caminho na Central do Vendedor Shopee | Arquivo Esperado |
+                | :--- | :--- | :--- |
+                | **Performance de Produto** | Informações Gerenciais > Produto > Performance > Exportar | `parentskudetail...xlsx` |
+                | **Visão Geral de Vendas** | Informações Gerenciais > Vendas > Visão Geral > Exportar | `sales_overview...xlsx` |
+                | **Visão Geral de Tráfego** | Informações Gerenciais > Tráfego > Visão Geral > Exportar | `traffic_overview...xlsx` |
+                """
+            )
+
+    # Tópico 3: Explicação dos Cálculos e Métricas
+    with st.expander("📊 Explicação dos Cálculos e Métricas"):
         st.markdown(
             """
-            - **Curva ABC Dinâmica:** Classificação automática de produtos por relevância de faturamento.
-            - **Saúde de Portfólio:** Identificação de 'Produtos Estrela' vs 'Produtos Mortos'.
-            - **Eficiência Logística:** (ML) Impacto do Full e outras modalidades no seu resultado.
-            - **Funil de Conversão:** (Shopee) Onde você está perdendo clientes (Visitas -> Carrinho -> Pedidos).
-            - **Plano de Ação:** Sugestões automáticas de preço, estoque e publicidade.
+            Entenda como os indicadores são calculados para tomar decisões melhores:
+
+            *   **Curva ABC (Faturamento):**
+                *   **Classe A:** 20% dos produtos que geram ~80% do seu faturamento (Foco Total).
+                *   **Classe B:** 30% dos produtos que geram ~15% do seu faturamento (Potencial de Crescimento).
+                *   **Classe C:** 50% dos produtos que geram ~5% do seu faturamento (Eficiência Operacional).
+            
+            *   **Métricas Exclusivas Amazon:**
+                *   **Buy Box % (Oferta em Destaque):** Porcentagem de tempo que seu produto foi a opção de compra principal. Abaixo de 80% indica perda de competitividade ou estoque.
+                *   **Sessões:** Número de visitantes únicos que visualizaram suas ofertas.
+                *   **Conversão (Unit Session Percentage):** Unidades pedidas divididas pelo número de sessões.
+            
+            *   **Saúde do Produto:**
+                *   **Produto Estrela:** Alto faturamento e alta conversão.
+                *   **Produto Morto:** Sem vendas nos últimos 30 dias.
+                *   **Oportunidade:** Alto tráfego (sessões), mas baixa conversão.
             """
         )
 
-    st.markdown("---")
-    st.markdown("### 📥 Onde baixar os relatórios precisos")
-
-    tab_ml, tab_shopee, tab_amazon = st.tabs(["Mercado Livre", "Shopee", "Amazon"])
-
-    with tab_ml:
+    # Tópico 4: Dicas e Boas Práticas
+    with st.expander("💡 Dicas e Boas Práticas"):
         st.markdown(
             """
-            | Relatório | Caminho no Mercado Livre | Finalidade na Ferramenta |
-            | :--- | :--- | :--- |
-            | **Vendas** | Vendas > Vendas > Ícone de Download (Excel) | Base de pedidos, datas e status. |
+            Para extrair o melhor da ferramenta:
+            
+            *   **Frequência de Análise:** Recomendamos realizar o upload dos dados semanalmente para acompanhar tendências de queda na Buy Box ou aumento de estoque parado.
+            *   **Períodos Comparativos:** Ao analisar a Curva ABC, compare o período de 30 dias com o de 90 dias para identificar se um produto 'A' está perdendo relevância.
+            *   **Ação Imediata:** Produtos que caíram da Curva A para a B ou C devem ser prioridade em revisões de preço ou campanhas de Ads.
+            *   **Limpeza de Dados:** Não abra os arquivos CSV/Excel e salve-os novamente antes do upload, pois isso pode alterar a formatação de datas e moedas, causando erros no processamento.
             """
         )
-        st.warning("⚠️ **Atenção:** O Mercado Livre exporta arquivos com nomes como `Vendas-202X-XX-XX.xlsx`. Carregue o arquivo completo sem alterações.")
-
-    with tab_shopee:
-        st.markdown(
-            """
-            | Relatório | Caminho na Shopee | Arquivo Esperado |
-            | :--- | :--- | :--- |
-            | **Performance de Produto** | Informações Gerenciais > Produto > Performance > Exportar | `parentskudetail...xlsx` |
-            | **Visão Geral de Vendas** | Informações Gerenciais > Vendas > Visão Geral > Exportar | `sales_overview...xlsx` |
-            | **Visão Geral de Tráfego** | Informações Gerenciais > Tráfego > Visão Geral > Exportar | `traffic_overview...xlsx` |
-            """
-        )
-        st.info("💡 **Dica:** O arquivo `parentskudetail` é o mais importante para a análise da Curva ABC.")
-    
-    with tab_amazon:
-        st.markdown(
-            """
-            | Relatório | Caminho na Amazon | Arquivo Esperado |
-            | :--- | :--- | :--- |
-            | **Relatórios de Negócios** | Relatórios > Relatórios de Negócios > Por ASIN > Detalhes de vendas e tráfego da página de detalhes por item pai | `BusinessReport...csv` ou `.txt` |
-            | **Painel de Vendas** | Relatórios > Painel de Vendas > Exportar | `SalesDashboard...csv` |
-            """
-        )
-        st.info("💡 **Dica:** Os relatórios da Amazon podem ser exportados tanto em formato CSV quanto TXT.")
 
     st.markdown("---")
     st.markdown(
