@@ -254,10 +254,13 @@ class MercadoLivreProcessor(BaseProcessor):
                               log_lower.str.contains('pontos', na=False) | \
                               log_lower.str.contains('ponto de envio', na=False)
         base['is_flex'] = log_lower.str.contains('flex', na=False)
-        base['is_outros'] = ~(base['is_full'] | base['is_correios'] | base['is_flex'])
+        base['is_coleta'] = log_lower.str.contains('coleta', na=False)
+        base['is_outros'] = ~(base['is_full'] | base['is_correios'] | base['is_flex'] | base['is_coleta'])
         
         # Classificar vendas por publicidade
-        base['is_ads'] = base['ads'].str.lower().isin(['sim', 's', 'yes', 'y'])
+        # Normaliza valores e verifica se é "sim" ou variações
+        ads_lower = base['ads'].astype(str).str.strip().str.lower()
+        base['is_ads'] = ads_lower.isin(['sim', 's', 'yes', 'y', '1', 'true', 'si'])
         base['is_organic'] = ~base['is_ads']
         
         # Agregação por MLB e período
@@ -319,40 +322,47 @@ class MercadoLivreProcessor(BaseProcessor):
         log_rows = []
         for p in ['0-30', '31-60', '61-90', '91-120']:
             base_p = base[base['periodo'] == p]
-            total = len(base_p)
+            total_qty = int(base_p['unidades'].sum())
             
-            if total > 0:
-                full_qty = base_p['is_full'].sum()
-                correios_qty = base_p['is_correios'].sum()
-                flex_qty = base_p['is_flex'].sum()
-                outros_qty = base_p['is_outros'].sum()
+            if total_qty > 0:
+                full_qty = int(base_p[base_p['is_full']]['unidades'].sum())
+                correios_qty = int(base_p[base_p['is_correios']]['unidades'].sum())
+                flex_qty = int(base_p[base_p['is_flex']]['unidades'].sum())
+                coleta_qty = int(base_p[base_p['is_coleta']]['unidades'].sum())
+                outros_qty = int(base_p[base_p['is_outros']]['unidades'].sum())
                 
-                full_fat = base_p[base_p['is_full']]['receita'].sum()
-                correios_fat = base_p[base_p['is_correios']]['receita'].sum()
-                flex_fat = base_p[base_p['is_flex']]['receita'].sum()
-                outros_fat = base_p[base_p['is_outros']]['receita'].sum()
+                full_fat = float(base_p[base_p['is_full']]['receita'].sum())
+                correios_fat = float(base_p[base_p['is_correios']]['receita'].sum())
+                flex_fat = float(base_p[base_p['is_flex']]['receita'].sum())
+                coleta_fat = float(base_p[base_p['is_coleta']]['receita'].sum())
+                outros_fat = float(base_p[base_p['is_outros']]['receita'].sum())
                 
                 log_rows.append({
                     'periodo': p,
-                    'full_pct': full_qty / total,
-                    'correios_pct': correios_qty / total,
-                    'flex_pct': flex_qty / total,
-                    'outros_pct': outros_qty / total,
-                    'full_qty': int(full_qty),
-                    'correios_qty': int(correios_qty),
-                    'flex_qty': int(flex_qty),
-                    'outros_qty': int(outros_qty),
-                    'full_fat': float(full_fat),
-                    'correios_fat': float(correios_fat),
-                    'flex_fat': float(flex_fat),
-                    'outros_fat': float(outros_fat)
+                    'full_pct': (full_qty / total_qty) * 100,
+                    'correios_pct': (correios_qty / total_qty) * 100,
+                    'flex_pct': (flex_qty / total_qty) * 100,
+                    'coleta_pct': (coleta_qty / total_qty) * 100,
+                    'outros_pct': (outros_qty / total_qty) * 100,
+                    'full_qty': full_qty,
+                    'correios_qty': correios_qty,
+                    'flex_qty': flex_qty,
+                    'coleta_qty': coleta_qty,
+                    'outros_qty': outros_qty,
+                    'full_fat': full_fat,
+                    'correios_fat': correios_fat,
+                    'flex_fat': flex_fat,
+                    'coleta_fat': coleta_fat,
+                    'outros_fat': outros_fat,
+                    'total_qty': total_qty
                 })
             else:
                 log_rows.append({
                     'periodo': p,
-                    'full_pct': 0, 'correios_pct': 0, 'flex_pct': 0, 'outros_pct': 0,
-                    'full_qty': 0, 'correios_qty': 0, 'flex_qty': 0, 'outros_qty': 0,
-                    'full_fat': 0.0, 'correios_fat': 0.0, 'flex_fat': 0.0, 'outros_fat': 0.0
+                    'full_pct': 0, 'correios_pct': 0, 'flex_pct': 0, 'coleta_pct': 0, 'outros_pct': 0,
+                    'full_qty': 0, 'correios_qty': 0, 'flex_qty': 0, 'coleta_qty': 0, 'outros_qty': 0,
+                    'full_fat': 0.0, 'correios_fat': 0.0, 'flex_fat': 0.0, 'coleta_fat': 0.0, 'outros_fat': 0.0,
+                    'total_qty': 0
                 })
         
         df_logistics = pd.DataFrame(log_rows)
@@ -361,23 +371,25 @@ class MercadoLivreProcessor(BaseProcessor):
         ads_rows = []
         for p in ['0-30', '31-60', '61-90', '91-120']:
             base_p = base[base['periodo'] == p]
-            total = len(base_p)
+            total_qty = int(base_p['unidades'].sum())
             
-            if total > 0:
-                ads_qty = base_p['is_ads'].sum()
-                organic_qty = base_p['is_organic'].sum()
+            if total_qty > 0:
+                ads_qty = int(base_p[base_p['is_ads']]['unidades'].sum())
+                organic_qty = total_qty - ads_qty
                 
-                ads_value = base_p[base_p['is_ads']]['receita'].sum()
-                organic_value = base_p[base_p['is_organic']]['receita'].sum()
+                ads_value = float(base_p[base_p['is_ads']]['receita'].sum())
+                total_value = float(base_p['receita'].sum())
+                organic_value = total_value - ads_value
                 
                 ads_rows.append({
                     'periodo': p,
-                    'ads_pct': ads_qty / total,
-                    'organic_pct': organic_qty / total,
-                    'ads_qty': int(ads_qty),
-                    'organic_qty': int(organic_qty),
-                    'ads_value': float(ads_value),
-                    'organic_value': float(organic_value)
+                    'ads_pct': (ads_qty / total_qty) * 100,
+                    'organic_pct': (organic_qty / total_qty) * 100,
+                    'ads_qty': ads_qty,
+                    'organic_qty': organic_qty,
+                    'ads_value': ads_value,
+                    'organic_value': organic_value,
+                    'total_qty': total_qty
                 })
             else:
                 ads_rows.append({
