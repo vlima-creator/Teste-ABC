@@ -104,7 +104,7 @@ def render_guide_tab():
     
     st.markdown(
         """
-        Para manter uma operação saudável e em crescimento, recomendamos um **Ciclo Semanal de Análise**. Compare sempre o desempenho de curto prazo (30 dias) com o histórico de médio prazo (90-120 dias). Produtos que mantêm a estabilidade na Curva "A" são suas "Vacas Leiteiras" e devem ter o estoque protegido a qualquer custo.
+        Para manter uma operação saudável e em crescimento, recomendamos um **Ciclo Semanal de Análise**. Compare sempre o desempenho de curto prazo (30 dias) com o histórico de médio prazo (90-120 dias). Produtos que mantêm a estabilidade na Curva "A" são seus **Pilares de Faturamento** e devem ter o estoque protegido a qualquer custo.
         
         Evite manipular os arquivos de origem. Abrir um CSV no Excel e salvá-lo novamente pode alterar formatos de data e separadores decimais, impedindo que a ferramenta processe os dados corretamente. Sempre realize o upload do arquivo exatamente como ele foi exportado do marketplace para garantir a precisão total dos indicadores.
         """
