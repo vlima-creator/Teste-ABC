@@ -68,15 +68,17 @@ def render_guide_tab():
     with tab_shopee:
         st.markdown(
             """
-            Na **Shopee**, a análise é centrada no comportamento do usuário dentro do aplicativo e no **Funil de Conversão**. Monitoramos o caminho desde a visita até o pedido pago para identificar onde você está perdendo dinheiro. A **Taxa de Rejeição** alta indica que sua primeira impressão (foto e título) não está sendo suficiente para reter o interesse do comprador.
+            Na **Shopee**, a análise é centrada no comportamento do usuário dentro do aplicativo e no **Funil de Conversão**. Monitoramos o caminho desde a visita até o pedido pago para identificar onde você está perdendo dinheiro.
+            
+            A **Taxa de Rejeição** é um indicador crucial: ela mede a porcentagem de visitantes que chegam à sua página de produto e a abandonam imediatamente, sem interagir (clicar em fotos, ler descrição, adicionar ao carrinho). Uma taxa de rejeição alta indica que a **primeira impressão** do seu anúncio (foto principal, título, preço) não foi atrativa o suficiente para reter o interesse do comprador. Isso pode ser causado por imagens de baixa qualidade, títulos confusos ou irrelevantes, ou um preço que não se alinha às expectativas. Uma alta rejeição não só afasta clientes, mas também sinaliza para o algoritmo da Shopee que seu anúncio pode não ser relevante, impactando negativamente seu posicionamento nas buscas.
             
             A métrica de **Conversão de Carrinho** revela se o problema está na oferta final. Muitos itens adicionados ao carrinho que não viram pedidos pagos sugerem que o valor do frete ou a falta de cupons competitivos está fazendo o cliente desistir no último momento. Como a Shopee é uma plataforma predominantemente mobile, verifique sempre se sua comunicação visual está otimizada para telas pequenas.
             
             | Métrica Shopee | O que observar | Ação Recomendada |
             | :--- | :--- | :--- |
+            | **Taxa de Rejeição** | % de visitantes que abandonam a página | Revise a foto principal, título e preço para serem mais atrativos. |
             | **Conversão de Carrinho** | Relação Add Carrinho vs Pedidos | Teste "Cupom de Seguidor" ou "Oferta Relâmpago". |
             | **Tráfego PC vs App** | Origem das visitas | Otimize imagens e textos para leitura em dispositivos móveis. |
-            | **Taxa de Rejeição** | Saída imediata da página | Melhore a qualidade da foto principal e clareza do título. |
             """
         )
 
