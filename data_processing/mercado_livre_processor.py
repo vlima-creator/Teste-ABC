@@ -105,9 +105,9 @@ class MercadoLivreProcessor(BaseProcessor):
         col_unid = _pick_col(df.columns, 'Unidades')
         
         try:
-            col_rec = _pick_col(df.columns, 'Receita por produtos (BRL)')
+            col_rec = _pick_col(df.columns, 'Total (BRL)')
         except Exception:
-            col_rec = _pick_col(df.columns, 'Receita por produtos')
+            col_rec = _pick_col(df.columns, 'Total')
         
         col_mlb = _pick_col(df.columns, '# de anúncio')
         col_sku = _try_pick_col(df.columns, 'SKU')
@@ -190,9 +190,12 @@ class MercadoLivreProcessor(BaseProcessor):
             }
             s = base['_data_raw'].astype(str).str.lower()
             s = s.str.replace('hs.', '', regex=False).str.replace('hs', '', regex=False)
+            # Substituir nomes de meses por números
             for name, num in month_map.items():
                 s = s.str.replace(rf'\b{name}\b', num, regex=True)
-            s = s.str.replace(r'\s*de\s*', '/', regex=True)
+            # Substituir " de " por "/"
+            s = s.str.replace(r'\s+de\s+', '/', regex=True)
+            # Remover espaços extras e converter
             s = s.str.replace(r'\s+', ' ', regex=True).str.strip()
             tmp = pd.to_datetime(s, errors='coerce', dayfirst=True)
             if tmp.notna().sum() > 0:
@@ -219,9 +222,9 @@ class MercadoLivreProcessor(BaseProcessor):
         base['receita'] = pd.to_numeric(rec, errors='coerce').fillna(0.0)
         
         if base.empty:
-            cols = ['MLB','Título'] + [f'Qntd {p}' for p in ['0-30','31-60','61-90','91-120']] + \
-                   [f'Fat. {p}' for p in ['0-30','31-60','61-90','91-120']] + \
-                   [f'Curva {p}' for p in ['0-30','31-60','61-90','91-120']]
+            cols = ['MLB','Título'] + [f'Qntd {p}' for p in ['0-30','31-60','61-90','91+']] + \
+                   [f'Fat. {p}' for p in ['0-30','31-60','61-90','91+']] + \
+                   [f'Curva {p}' for p in ['0-30','31-60','61-90','91+']]
             empty_df = pd.DataFrame(columns=cols)
             empty_log = pd.DataFrame(columns=['periodo', 'full_pct', 'correios_pct', 'flex_pct', 'outros_pct', 
                                               'full_qty', 'correios_qty', 'flex_qty', 'outros_qty',
@@ -239,9 +242,7 @@ class MercadoLivreProcessor(BaseProcessor):
                 return '31-60'
             if d <= 90:
                 return '61-90'
-            if d <= 120:
-                return '91-120'
-            return None
+            return '91+'
         
         base['periodo'] = base['dias'].apply(bucket)
         base = base.dropna(subset=['periodo'])
@@ -270,21 +271,21 @@ class MercadoLivreProcessor(BaseProcessor):
         piv_rev = agg.pivot_table(index=['mlb', 'titulo'], columns='periodo', values='receita', fill_value=0.0).reset_index()
         
         # Renomear colunas
-        for p in ['0-30', '31-60', '61-90', '91-120']:
+        for p in ['0-30', '31-60', '61-90', '91+']:
             if p not in piv_qty.columns:
                 piv_qty[p] = 0
             if p not in piv_rev.columns:
                 piv_rev[p] = 0.0
         
-        piv_qty = piv_qty.rename(columns={p: f'Qntd {p}' for p in ['0-30', '31-60', '61-90', '91-120']})
-        piv_rev = piv_rev.rename(columns={p: f'Fat. {p}' for p in ['0-30', '31-60', '61-90', '91-120']})
+        piv_qty = piv_qty.rename(columns={p: f'Qntd {p}' for p in ['0-30', '31-60', '61-90', '91+']})
+        piv_rev = piv_rev.rename(columns={p: f'Fat. {p}' for p in ['0-30', '31-60', '61-90', '91+']})
         
         # Merge
         export = piv_qty.merge(piv_rev, on=['mlb', 'titulo'], how='outer')
         export = export.rename(columns={'mlb': 'MLB', 'titulo': 'Título'})
         
         # Calcula curva ABC para cada período
-        for p in ['0-30', '31-60', '61-90', '91-120']:
+        for p in ['0-30', '31-60', '61-90', '91+']:
             fat_col = f'Fat. {p}'
             curva_col = f'Curva {p}'
             
@@ -306,8 +307,8 @@ class MercadoLivreProcessor(BaseProcessor):
                 export_sorted[curva_col] = export_sorted['_pct_acum'].apply(classify)
                 export_sorted.loc[export_sorted[fat_col] == 0, curva_col] = '-'
                 
-                # Merge de volta
-                export = export.merge(export_sorted[['MLB', curva_col]], on='MLB', how='left', suffixes=('', '_new'))
+                # Merge de volta usando MLB e Título para evitar explosão
+                export = export.merge(export_sorted[['MLB', 'Título', curva_col]], on=['MLB', 'Título'], how='left', suffixes=('', '_new'))
                 if curva_col + '_new' in export.columns:
                     export[curva_col] = export[curva_col + '_new']
                     export = export.drop(columns=[curva_col + '_new'])
@@ -316,7 +317,7 @@ class MercadoLivreProcessor(BaseProcessor):
         
         # Métricas logísticas por período
         log_rows = []
-        for p in ['0-30', '31-60', '61-90', '91-120']:
+        for p in ['0-30', '31-60', '61-90', '91+']:
             base_p = base[base['periodo'] == p]
             total = len(base_p)
             
@@ -358,7 +359,7 @@ class MercadoLivreProcessor(BaseProcessor):
         
         # Métricas de Ads por período
         ads_rows = []
-        for p in ['0-30', '31-60', '61-90', '91-120']:
+        for p in ['0-30', '31-60', '61-90', '91+']:
             base_p = base[base['periodo'] == p]
             total = len(base_p)
             
