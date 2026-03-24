@@ -1,9 +1,10 @@
 """
 Processador de dados do Mercado Livre.
-Mantém a lógica original de transformação do app.py.
+Mantém a lógica original de transformação do app.py com melhorias de robustez.
 """
 import pandas as pd
 import numpy as np
+import re
 from typing import Tuple, Optional
 from .base_processor import BaseProcessor
 
@@ -40,7 +41,6 @@ class MercadoLivreProcessor(BaseProcessor):
     def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame]]:
         """
         Processa relatório do Mercado Livre.
-        Mantém a lógica original do _transform_ml_raw.
         """
         if len(files) == 0:
             raise ValueError("Nenhum arquivo fornecido")
@@ -54,8 +54,6 @@ class MercadoLivreProcessor(BaseProcessor):
         """
         Converte o relatório bruto de vendas do Mercado Livre (120 dias) na estrutura 'Export'.
         Retorna: (df_export, df_logistics, df_ads)
-        
-        NOTA: Esta é a função original do app.py, mantida intacta.
         """
         
         def _seek0(f):
@@ -190,12 +188,9 @@ class MercadoLivreProcessor(BaseProcessor):
             }
             s = base['_data_raw'].astype(str).str.lower()
             s = s.str.replace('hs.', '', regex=False).str.replace('hs', '', regex=False)
-            # Substituir nomes de meses por números
             for name, num in month_map.items():
                 s = s.str.replace(rf'\b{name}\b', num, regex=True)
-            # Substituir " de " por "/"
             s = s.str.replace(r'\s+de\s+', '/', regex=True)
-            # Remover espaços extras e converter
             s = s.str.replace(r'\s+', ' ', regex=True).str.strip()
             tmp = pd.to_datetime(s, errors='coerce', dayfirst=True)
             if tmp.notna().sum() > 0:
@@ -207,19 +202,34 @@ class MercadoLivreProcessor(BaseProcessor):
         
         base['unidades'] = pd.to_numeric(base['unidades'], errors='coerce').fillna(0).astype(int)
         
-        rec = base['receita']
-        if rec.dtype == object:
-            rec = rec.astype(str).str.replace('\u00a0', '', regex=False).str.strip()
-            # Se contiver tanto '.' quanto ',', assume formato BR (1.234,56)
-            if rec.str.contains(r'\.', regex=True).any() and rec.str.contains(r',', regex=True).any():
-                rec = rec.str.replace('.', '', regex=False).str.replace(',', '.', regex=False)
-            # Se contiver apenas ',', assume que é o separador decimal (1234,56)
-            elif rec.str.contains(r',', regex=True).any():
-                rec = rec.str.replace(',', '.', regex=False)
-            # Remove símbolos de moeda se existirem
-            rec = rec.str.replace(r'[R\$\s]', '', regex=True)
+        def parse_brl(value):
+            if pd.isna(value):
+                return 0.0
+            if isinstance(value, (int, float)):
+                return float(value)
             
-        base['receita'] = pd.to_numeric(rec, errors='coerce').fillna(0.0)
+            s = str(value).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
+            if not s: return 0.0
+            
+            if ',' in s and '.' in s:
+                if s.find('.') < s.find(','): # 1.234,56
+                    s = s.replace('.', '').replace(',', '.')
+                else: # 1,234.56
+                    s = s.replace(',', '')
+            elif ',' in s:
+                parts = s.split(',')
+                if len(parts) == 2 and len(parts[1]) <= 2:
+                    s = s.replace(',', '.')
+                else:
+                    s = s.replace(',', '')
+            
+            try:
+                cleaned = re.sub(r'[^0-9.]', '', s)
+                return float(cleaned) if cleaned else 0.0
+            except:
+                return 0.0
+        
+        base['receita'] = base['receita'].apply(parse_brl)
         
         if base.empty:
             cols = ['MLB','Título'] + [f'Qntd {p}' for p in ['0-30','31-60','61-90','91-120']] + \
@@ -234,18 +244,12 @@ class MercadoLivreProcessor(BaseProcessor):
         
         ref = base['data'].max()
         base['dias'] = (ref - base['data']).dt.days
-        
-        # Filtra para considerar apenas os últimos 120 dias (4 meses)
-        # Isso evita que dados de 5 ou 6 meses sejam acumulados no último bucket
         base = base[base['dias'] <= 120].copy()
         
         def bucket(d):
-            if d <= 30:
-                return '0-30'
-            if d <= 60:
-                return '31-60'
-            if d <= 90:
-                return '61-90'
+            if d <= 30: return '0-30'
+            if d <= 60: return '31-60'
+            if d <= 90: return '61-90'
             return '91-120'
         
         base['periodo'] = base['dias'].apply(bucket)
@@ -262,7 +266,6 @@ class MercadoLivreProcessor(BaseProcessor):
         base['is_outros'] = ~(base['is_full'] | base['is_correios'] | base['is_flex'] | base['is_coleta'])
         
         # Classificar vendas por publicidade
-        # Normaliza valores e verifica se é "sim" ou variações
         ads_lower = base['ads'].astype(str).str.strip().str.lower()
         base['is_ads'] = ads_lower.isin(['sim', 's', 'yes', 'y', '1', 'true', 'si'])
         base['is_organic'] = ~base['is_ads']
@@ -279,10 +282,8 @@ class MercadoLivreProcessor(BaseProcessor):
         
         # Renomear colunas
         for p in ['0-30', '31-60', '61-90', '91-120']:
-            if p not in piv_qty.columns:
-                piv_qty[p] = 0
-            if p not in piv_rev.columns:
-                piv_rev[p] = 0.0
+            if p not in piv_qty.columns: piv_qty[p] = 0
+            if p not in piv_rev.columns: piv_rev[p] = 0.0
         
         piv_qty = piv_qty.rename(columns={p: f'Qntd {p}' for p in ['0-30', '31-60', '61-90', '91-120']})
         piv_rev = piv_rev.rename(columns={p: f'Fat. {p}' for p in ['0-30', '31-60', '61-90', '91-120']})
@@ -296,7 +297,6 @@ class MercadoLivreProcessor(BaseProcessor):
             fat_col = f'Fat. {p}'
             curva_col = f'Curva {p}'
             
-            # Ordena por faturamento
             export_sorted = export.sort_values(fat_col, ascending=False).copy()
             total_fat = export_sorted[fat_col].sum()
             
@@ -304,17 +304,13 @@ class MercadoLivreProcessor(BaseProcessor):
                 export_sorted['_pct_acum'] = (export_sorted[fat_col].cumsum() / total_fat) * 100
                 
                 def classify(pct):
-                    if pct <= 80:
-                        return 'A'
-                    elif pct <= 95:
-                        return 'B'
-                    else:
-                        return 'C'
+                    if pct <= 80: return 'A'
+                    elif pct <= 95: return 'B'
+                    else: return 'C'
                 
                 export_sorted[curva_col] = export_sorted['_pct_acum'].apply(classify)
                 export_sorted.loc[export_sorted[fat_col] == 0, curva_col] = '-'
                 
-                # Merge de volta usando MLB e Título para evitar explosão
                 export = export.merge(export_sorted[['MLB', 'Título', curva_col]], on=['MLB', 'Título'], how='left', suffixes=('', '_new'))
                 if curva_col + '_new' in export.columns:
                     export[curva_col] = export[curva_col + '_new']
@@ -348,16 +344,8 @@ class MercadoLivreProcessor(BaseProcessor):
                     'flex_pct': (flex_qty / total_qty) * 100,
                     'coleta_pct': (coleta_qty / total_qty) * 100,
                     'outros_pct': (outros_qty / total_qty) * 100,
-                    'full_qty': full_qty,
-                    'correios_qty': correios_qty,
-                    'flex_qty': flex_qty,
-                    'coleta_qty': coleta_qty,
-                    'outros_qty': outros_qty,
-                    'full_fat': full_fat,
-                    'correios_fat': correios_fat,
-                    'flex_fat': flex_fat,
-                    'coleta_fat': coleta_fat,
-                    'outros_fat': outros_fat,
+                    'full_qty': full_qty, 'correios_qty': correios_qty, 'flex_qty': flex_qty, 'coleta_qty': coleta_qty, 'outros_qty': outros_qty,
+                    'full_fat': full_fat, 'correios_fat': correios_fat, 'flex_fat': flex_fat, 'coleta_fat': coleta_fat, 'outros_fat': outros_fat,
                     'total_qty': total_qty
                 })
             else:
@@ -380,7 +368,6 @@ class MercadoLivreProcessor(BaseProcessor):
             if total_qty > 0:
                 ads_qty = int(base_p[base_p['is_ads']]['unidades'].sum())
                 organic_qty = total_qty - ads_qty
-                
                 ads_value = float(base_p[base_p['is_ads']]['receita'].sum())
                 total_value = float(base_p['receita'].sum())
                 organic_value = total_value - ads_value
@@ -389,21 +376,15 @@ class MercadoLivreProcessor(BaseProcessor):
                     'periodo': p,
                     'ads_pct': (ads_qty / total_qty) * 100,
                     'organic_pct': (organic_qty / total_qty) * 100,
-                    'ads_qty': ads_qty,
-                    'organic_qty': organic_qty,
-                    'ads_value': ads_value,
-                    'organic_value': organic_value,
+                    'ads_qty': ads_qty, 'organic_qty': organic_qty,
+                    'ads_value': ads_value, 'organic_value': organic_value,
                     'total_qty': total_qty
                 })
             else:
                 ads_rows.append({
                     'periodo': p,
-                    'ads_pct': 0,
-                    'organic_pct': 0,
-                    'ads_qty': 0,
-                    'organic_qty': 0,
-                    'ads_value': 0.0,
-                    'organic_value': 0.0
+                    'ads_pct': 0, 'organic_pct': 0, 'ads_qty': 0, 'organic_qty': 0,
+                    'ads_value': 0.0, 'organic_value': 0.0, 'total_qty': 0
                 })
         
         df_ads = pd.DataFrame(ads_rows)

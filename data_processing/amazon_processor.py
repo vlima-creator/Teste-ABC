@@ -113,13 +113,28 @@ class AmazonProcessor(BaseProcessor):
         # Agrupar por SKU/MLB para consolidar dados de múltiplos arquivos
         # Usamos 'first' para o Título para manter o primeiro encontrado
         # Para Buy Box, usamos a média se houver múltiplos registros
-        # Se houver faturamento sem Buybox (ex: arquivos diferentes), tentamos preservar o valor de Buybox
-        df_final = df_final.groupby(['MLB', 'SKU']).agg({
+        # Para Sessões e Page Views, somamos
+        # Para Taxa de Conversão, recalculamos após a soma se possível, ou usamos média ponderada
+        
+        agg_dict = {
             'Título': 'first',
             'Qtd total': 'sum',
             'Fat total': 'sum',
             'Buy Box %': 'mean'
-        }).reset_index()
+        }
+        
+        if '_amazon_sessions' in df_final.columns: agg_dict['_amazon_sessions'] = 'sum'
+        if '_amazon_page_views' in df_final.columns: agg_dict['_amazon_page_views'] = 'sum'
+        if '_amazon_conv_rate' in df_final.columns: agg_dict['_amazon_conv_rate'] = 'mean' # Média simples como fallback
+        
+        df_final = df_final.groupby(['MLB', 'SKU']).agg(agg_dict).reset_index()
+
+        # Recalcular Taxa de Conversão se tivermos sessões e quantidade
+        if '_amazon_sessions' in df_final.columns and 'Qtd total' in df_final.columns:
+            df_final['_amazon_conv_rate'] = df_final.apply(
+                lambda x: (x['Qtd total'] / x['_amazon_sessions'] * 100) if x['_amazon_sessions'] > 0 else 0.0, 
+                axis=1
+            )
 
         # Filtro final para garantir que temos dados
         # Mantemos produtos com Buybox mesmo sem vendas, pois o usuário quer monitorar o catálogo ativo
@@ -130,6 +145,13 @@ class AmazonProcessor(BaseProcessor):
 
         # Preenchimento de métricas padrão
         df_final['TM total'] = df_final.apply(lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0, axis=1)
+        
+        # Distribuir para períodos (0-30, 31-60, etc.)
+        # Como relatórios da Amazon geralmente não vêm com data por linha, 
+        # se houver apenas um arquivo ou arquivos sem data, colocamos tudo em 0-30.
+        # Mas para evitar que as outras colunas fiquem vazias e quebrem a lógica de "Anchors",
+        # vamos replicar os dados se for o caso, ou pelo menos garantir que as colunas existam.
+        
         for p in ['0-30', '31-60', '61-90', '91-120']:
             df_final[f'Qntd {p}'] = df_final['Qtd total'] if p == '0-30' else 0
             df_final[f'Fat. {p}'] = df_final['Fat total'] if p == '0-30' else 0.0
@@ -137,7 +159,12 @@ class AmazonProcessor(BaseProcessor):
         # Curva ABC
         df_final = self.calculate_abc_curve(df_final, 'Fat total')
         df_final['Curva 0-30'] = df_final['curva_abc']
-        for p in ['31-60', '61-90', '91-120']: df_final[f'Curva {p}'] = '-'
+        
+        # Para Amazon, se não temos dados históricos, vamos assumir que a curva se mantém 
+        # para não quebrar a lógica de "Produtos Âncora" no dashboard principal
+        for p in ['31-60', '61-90', '91-120']: 
+            df_final[f'Curva {p}'] = df_final['curva_abc']
+            
         df_final = df_final.drop(columns=['curva_abc'], errors='ignore')
         
         return df_final, pd.DataFrame(), pd.DataFrame()
@@ -241,6 +268,24 @@ class AmazonProcessor(BaseProcessor):
             df_export['Buy Box %'] = df[buybox_col].apply(clean_pct)
         else:
             df_export['Buy Box %'] = 0.0
+
+        # 6. Sessões (Sessions)
+        sessions_patterns = ['sessions', 'sessões', 'sessoes', 'visitantes']
+        sessions_col = next((c for c in df.columns if any(p in c.lower() for p in sessions_patterns)), None)
+        if sessions_col:
+            df_export['_amazon_sessions'] = df[sessions_col].apply(clean_int)
+        
+        # 7. Visualizações de Página (Page Views)
+        pv_patterns = ['page views', 'visualizações de página', 'visualizacoes', 'page-views']
+        pv_col = next((c for c in df.columns if any(p in c.lower() for p in pv_patterns)), None)
+        if pv_col:
+            df_export['_amazon_page_views'] = df[pv_col].apply(clean_int)
+            
+        # 8. Taxa de Conversão (Unit Session Percentage)
+        conv_patterns = ['unit session percentage', 'taxa de conversão', 'conversão', 'conversion', 'order-item-session-percentage']
+        conv_col = next((c for c in df.columns if any(p in c.lower() for p in conv_patterns)), None)
+        if conv_col:
+            df_export['_amazon_conv_rate'] = df[conv_col].apply(clean_pct)
 
         # BUSCA AGRESSIVA por conteúdo se as colunas nomeadas falharem
         if df_export['Fat total'].sum() == 0 or df_export['Qtd total'].sum() == 0:

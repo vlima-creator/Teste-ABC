@@ -2454,6 +2454,18 @@ if st.session_state.get('canal') == 'Amazon':
             plan.at[idx, "Plano 7 dias"] = alert['Ação']
             plan.at[idx, "Frente"] = "CORREÇÃO"
 
+# Alertas específicos para Shopee
+elif st.session_state.get('canal') == 'Shopee':
+    from ui.components.shopee_components import get_shopee_alerts
+    shopee_alerts = get_shopee_alerts(df_f)
+    for alert in shopee_alerts:
+        sku = alert['SKU']
+        if sku in plan['SKU'].values:
+            idx = plan[plan['SKU'] == sku].index[0]
+            plan.at[idx, "Ação sugerida"] = alert['Motivo']
+            plan.at[idx, "Plano 7 dias"] = alert['Ação']
+            plan.at[idx, "Frente"] = "CORREÇÃO"
+
 # =========================
 # Diagnóstico macro
 # =========================
@@ -2786,6 +2798,17 @@ with tab1:
 
     elif st.session_state.get('canal') == 'Amazon':
         # Seções específicas da Amazon
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Funil de Conversão
+        from ui.components.amazon_components import render_amazon_conversion_metrics, render_amazon_engagement_metrics
+        render_amazon_conversion_metrics(df_f)
+        
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Engajamento e Tráfego
+        render_amazon_engagement_metrics(df_f)
+        
         st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
         
         # Performance de Buybox

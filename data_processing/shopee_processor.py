@@ -4,6 +4,7 @@ Transforma relatórios da Shopee no formato padronizado de curva ABC.
 """
 import pandas as pd
 import numpy as np
+import re
 from typing import Tuple, Optional
 from .base_processor import BaseProcessor
 
@@ -85,10 +86,10 @@ class ShopeeProcessor(BaseProcessor):
         df_traffic = self._process_traffic_overview(traffic_file) if traffic_file else None
         
         # Extrai dados de PC vs Aplicativo do traffic_overview
-        if traffic_file and df_traffic:
+        if traffic_file:
             pc_app_data = self._extract_pc_app_data(traffic_file)
             if pc_app_data:
-                # Adiciona como colunas no DataFrame principal
+                # Adiciona como colunas no DataFrame principal (replicado para todas as linhas para facilitar acesso na UI)
                 df_export['_shopee_visitantes_pc'] = pc_app_data['pc']
                 df_export['_shopee_visitantes_app'] = pc_app_data['app']
         
@@ -129,9 +130,28 @@ class ShopeeProcessor(BaseProcessor):
         def parse_brl(value):
             if pd.isna(value):
                 return 0.0
-            value_str = str(value).replace('.', '').replace(',', '.')
+            if isinstance(value, (int, float)):
+                return float(value)
+            
+            s = str(value).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
+            if not s: return 0.0
+            
+            # Lógica para tratar 1.234,56 ou 1,234.56 ou 1234,56
+            if ',' in s and '.' in s:
+                if s.find('.') < s.find(','): # 1.234,56
+                    s = s.replace('.', '').replace(',', '.')
+                else: # 1,234.56
+                    s = s.replace(',', '')
+            elif ',' in s:
+                parts = s.split(',')
+                if len(parts) == 2 and len(parts[1]) <= 2:
+                    s = s.replace(',', '.')
+                else:
+                    s = s.replace(',', '')
+            
             try:
-                return float(value_str)
+                cleaned = re.sub(r'[^0-9.]', '', s)
+                return float(cleaned) if cleaned else 0.0
             except:
                 return 0.0
         
@@ -143,19 +163,15 @@ class ShopeeProcessor(BaseProcessor):
             axis=1
         )
         
-        # Como Shopee tem apenas um período, replica para todos os períodos
-        for periodo in ['0-30', '31-60', '61-90', '91-120']:
-            df_export[f'Qntd {periodo}'] = df_export['Qtd total'] if periodo == '0-30' else 0
-            df_export[f'Fat. {periodo}'] = df_export['Fat total'] if periodo == '0-30' else 0.0
-        
         # Calcula curva ABC baseada no faturamento total
         df_export = self.calculate_abc_curve(df_export, 'Fat total')
         
-        # Atribui curva ABC para o período 0-30 (atual)
-        df_export['Curva 0-30'] = df_export['curva_abc']
-        df_export['Curva 31-60'] = '-'
-        df_export['Curva 61-90'] = '-'
-        df_export['Curva 91-120'] = '-'
+        # Como Shopee tem apenas um período no relatório padrão, replica para todos os períodos
+        # para não quebrar a lógica de "Produtos Âncora" e "Plano Tático"
+        for periodo in ['0-30', '31-60', '61-90', '91-120']:
+            df_export[f'Qntd {periodo}'] = df_export['Qtd total'] if periodo == '0-30' else 0
+            df_export[f'Fat. {periodo}'] = df_export['Fat total'] if periodo == '0-30' else 0.0
+            df_export[f'Curva {periodo}'] = df_export['curva_abc']
         
         # Dados específicos da Shopee
         df_export['_shopee_visitantes'] = pd.to_numeric(df_pai['Visitantes do Produto (Visita)'], errors='coerce').fillna(0).astype(int)
@@ -165,9 +181,13 @@ class ShopeeProcessor(BaseProcessor):
         def parse_pct(value):
             if pd.isna(value):
                 return 0.0
-            value_str = str(value).replace('%', '').replace(',', '.')
+            if isinstance(value, (int, float)):
+                return float(value) / 100 if float(value) > 1 else float(value)
+            
+            value_str = str(value).replace('%', '').replace(',', '.').strip()
             try:
-                return float(value_str) / 100
+                cleaned = re.sub(r'[^0-9.]', '', value_str)
+                return float(cleaned) / 100 if cleaned else 0.0
             except:
                 return 0.0
         
@@ -236,27 +256,36 @@ class ShopeeProcessor(BaseProcessor):
         """
         try:
             file.seek(0)
+            # Lê todas as abas disponíveis
+            xl = pd.ExcelFile(file)
+            sheet_names = xl.sheet_names
             
-            # Lê aba PC
-            df_pc_raw = pd.read_excel(file, sheet_name='PC')
-            df_pc = df_pc_raw.iloc[2:].reset_index(drop=True)
-            df_pc.columns = df_pc_raw.iloc[2].values
-            # Remove a primeira linha que é o header duplicado
-            df_pc = df_pc[df_pc['Data'] != 'Data']
-            visitantes_pc = pd.to_numeric(df_pc['Visitantes'], errors='coerce').sum()
+            visitantes_pc = 0
+            visitantes_app = 0
             
-            # Lê aba Aplicativo
-            file.seek(0)
-            df_app_raw = pd.read_excel(file, sheet_name='Aplicativo')
-            df_app = df_app_raw.iloc[2:].reset_index(drop=True)
-            df_app.columns = df_app_raw.iloc[2].values
-            # Remove a primeira linha que é o header duplicado
-            df_app = df_app[df_app['Data'] != 'Data']
-            visitantes_app = pd.to_numeric(df_app['Visitantes'], errors='coerce').sum()
+            if 'PC' in sheet_names:
+                df_pc_raw = pd.read_excel(file, sheet_name='PC')
+                # Localiza a linha que contém 'Data' para ser o header
+                header_idx = df_pc_raw[df_pc_raw.iloc[:, 0] == 'Data'].index
+                if not header_idx.empty:
+                    idx = header_idx[0]
+                    df_pc = df_pc_raw.iloc[idx+1:].copy()
+                    df_pc.columns = df_pc_raw.iloc[idx].values
+                    visitantes_pc = pd.to_numeric(df_pc['Visitantes'], errors='coerce').sum()
+            
+            if 'Aplicativo' in sheet_names:
+                file.seek(0)
+                df_app_raw = pd.read_excel(file, sheet_name='Aplicativo')
+                header_idx = df_app_raw[df_app_raw.iloc[:, 0] == 'Data'].index
+                if not header_idx.empty:
+                    idx = header_idx[0]
+                    df_app = df_app_raw.iloc[idx+1:].copy()
+                    df_app.columns = df_app_raw.iloc[idx].values
+                    visitantes_app = pd.to_numeric(df_app['Visitantes'], errors='coerce').sum()
             
             return {
-                'pc': int(visitantes_pc),
-                'app': int(visitantes_app)
+                'pc': int(visitantes_pc) if not np.isnan(visitantes_pc) else 0,
+                'app': int(visitantes_app) if not np.isnan(visitantes_app) else 0
             }
             
         except Exception as e:
