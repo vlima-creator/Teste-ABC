@@ -20,13 +20,12 @@ def render_amazon_buybox_metrics(df_export):
     pct_perdendo = (len(perdendo) / len(df_export)) * 100 if len(df_export) > 0 else 0
 
     # Cards de Métricas
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Média de Buybox", f"{avg_buybox:.1f}%")
-    with col2:
-        st.metric("Produtos Ganhando (>=80%)", f"{len(ganhando)}", f"{pct_ganhando:.1f}% do catálogo")
-    with col3:
-        st.metric("Produtos Perdendo (<80%)", f"{len(perdendo)}", f"-{pct_perdendo:.1f}% do catálogo", delta_color="inverse")
+    from app import render_metric_grid
+    render_metric_grid([
+        ("Média de Buybox", f"{avg_buybox:.1f}%", "📦", "blue"),
+        ("Produtos Ganhando (>=80%)", f"{len(ganhando)}", "⭐", "green"),
+        ("Produtos Perdendo (<80%)", f"{len(perdendo)}", "⚠️", "rose")
+    ])
 
     # Botão de Download do Relatório de Buybox
     st.markdown('<div style="height:0.5rem"></div>', unsafe_allow_html=True)
@@ -112,13 +111,12 @@ def render_amazon_conversion_metrics(df_export):
     total_units = df_export['Qtd total'].sum()
     avg_conv = (total_units / total_sessions * 100) if total_sessions > 0 else 0.0
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total de Sessões", f"{int(total_sessions):,}")
-    with col2:
-        st.metric("Unidades Pedidas", f"{int(total_units):,}")
-    with col3:
-        st.metric("Taxa de Conversão Média", f"{avg_conv:.2f}%")
+    from app import render_metric_grid
+    render_metric_grid([
+        ("Total de Sessões", f"{int(total_sessions):,}", "👥", "blue"),
+        ("Unidades Pedidas", f"{int(total_units):,}", "📦", "amber"),
+        ("Taxa de Conversão Média", f"{avg_conv:.2f}%", "🎯", "green")
+    ])
 
     # Gráfico de Funil
     fig = go.Figure(go.Funnel(
@@ -141,11 +139,11 @@ def render_amazon_engagement_metrics(df_export):
     total_sessions = df_export['_amazon_sessions'].sum() if '_amazon_sessions' in df_export.columns else 0
     pv_per_session = (total_pv / total_sessions) if total_sessions > 0 else 0
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Visualizações de Página", f"{int(total_pv):,}")
-    with col2:
-        st.metric("Páginas / Sessão", f"{pv_per_session:.2f}")
+    from app import render_metric_grid
+    render_metric_grid([
+        ("Visualizações de Página", f"{int(total_pv):,}", "👀", "blue"),
+        ("Páginas / Sessão", f"{pv_per_session:.2f}", "📈", "purple")
+    ])
 
     # Top 10 Produtos por Sessões
     st.markdown("#### Top 10 Produtos com Mais Tráfego")

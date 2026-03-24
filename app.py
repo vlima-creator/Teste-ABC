@@ -1239,7 +1239,13 @@ def render_metric_grid(metrics: list):
             "📈": "trending-up",
             "⭐": "star",
             "💵": "banknote",
-            "🏆": "award"
+            "🏆": "award",
+            "🛒": "package",
+            "📉": "trending-up",
+            "👀": "search",
+            "🎯": "target",
+            "👥": "activity",
+            "⚠️": "activity"
         }
         icon_name = icon_map.get(icon, "activity")
         svg = get_svg_icon(icon_name)

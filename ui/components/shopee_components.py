@@ -90,17 +90,13 @@ def render_shopee_conversion_funnel(df_export: pd.DataFrame):
     taxa_pedido = (total_pedidos / total_visitantes * 100) if total_visitantes > 0 else 0
     taxa_pagamento = (total_compradores / total_pedidos * 100) if total_pedidos > 0 else 0
     
-    # Exibe métricas de conversão
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric("Taxa Add Carrinho", f"{taxa_carrinho:.2f}%")
-    
-    with col2:
-        st.metric("Taxa Pedido", f"{taxa_pedido:.2f}%")
-    
-    with col3:
-        st.metric("Taxa Pagamento", f"{taxa_pagamento:.2f}%")
+    # Exibe métricas de conversão em cards
+    from app import render_metric_grid
+    render_metric_grid([
+        ("Taxa Add Carrinho", f"{taxa_carrinho:.2f}%", "🛒", "blue"),
+        ("Taxa Pedido", f"{taxa_pedido:.2f}%", "📦", "amber"),
+        ("Taxa Pagamento", f"{taxa_pagamento:.2f}%", "💰", "green")
+    ])
 
 
 def render_shopee_engagement_metrics(df_export: pd.DataFrame):
@@ -123,19 +119,13 @@ def render_shopee_engagement_metrics(df_export: pd.DataFrame):
     
     st.markdown("### 📈 Métricas de Engajamento")
     
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("Taxa de Rejeição", f"{taxa_rejeicao_media*100:.1f}%")
-    
-    with col2:
-        st.metric("Visualizações/Visitante", f"{viz_por_visitante:.2f}")
-    
-    with col3:
-        st.metric("Taxa de Conversão", f"{taxa_conversao_media*100:.2f}%")
-    
-    with col4:
-        st.metric("Total de Visitantes", f"{int(total_visitantes):,}")
+    from app import render_metric_grid
+    render_metric_grid([
+        ("Taxa de Rejeição", f"{taxa_rejeicao_media*100:.1f}%", "📉", "rose"),
+        ("Visualizações/Visitante", f"{viz_por_visitante:.2f}", "👀", "blue"),
+        ("Taxa de Conversão", f"{taxa_conversao_media*100:.2f}%", "🎯", "green"),
+        ("Total de Visitantes", f"{int(total_visitantes):,}", "👥", "purple")
+    ])
 
 
 def render_shopee_top_rejection_rate(df_export: pd.DataFrame):
