@@ -24,10 +24,11 @@ def detect_channel(files: list) -> str:
         MercadoLivreProcessor()
     ]
     
-    # Tenta detectar o canal do primeiro arquivo
-    for processor in processors:
-        if processor.detect(files[0]):
-            return processor.canal_name
+    # Tenta detectar o canal percorrendo os arquivos
+    for file in files:
+        for processor in processors:
+            if processor.detect(file):
+                return processor.canal_name
     
     # Caso contrário, assume Mercado Livre como fallback
     return "Mercado Livre"
@@ -72,9 +73,6 @@ def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.Data
     
     if detected_processor is None:
         # Tenta uma detecção baseada em extensão se falhar por conteúdo
-        from .mercado_livre_processor import MercadoLivreProcessor
-        from .shopee_processor import ShopeeProcessor
-        
         for file in files:
             fname = getattr(file, 'name', '').lower()
             if fname.endswith(('.xlsx', '.xls')):
@@ -83,7 +81,6 @@ def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.Data
                 break
             elif fname.endswith('.csv'):
                 # Heurística: CSV costuma ser Amazon
-                from .amazon_processor import AmazonProcessor
                 detected_processor = AmazonProcessor()
                 break
 
