@@ -43,7 +43,7 @@ class ShopeeProcessor(BaseProcessor):
         except Exception:
             return False
     
-    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[pd.DataFrame]]:
         """
         Processa relatórios da Shopee.
         
@@ -96,8 +96,9 @@ class ShopeeProcessor(BaseProcessor):
         # Shopee não tem dados de logística e ads no formato do ML
         df_logistics = pd.DataFrame()
         df_ads = pd.DataFrame()
+        df_raw = pd.DataFrame()  # Shopee não fornece dados brutos com data
         
-        return df_export, df_logistics, df_ads
+        return df_export, df_logistics, df_ads, df_raw
     
     def _process_product_performance(self, file) -> pd.DataFrame:
         """

@@ -27,7 +27,7 @@ class BaseProcessor(ABC):
         pass
     
     @abstractmethod
-    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[pd.DataFrame]]:
         """
         Processa os arquivos do canal e retorna DataFrames padronizados.
         
@@ -39,6 +39,7 @@ class BaseProcessor(ABC):
             - df_export: DataFrame principal com análise ABC
             - df_logistics: DataFrame com métricas logísticas (ou None)
             - df_ads: DataFrame com métricas de publicidade (ou None)
+            - df_raw: DataFrame bruto com dados de data para análise semanal (ou None)
         """
         pass
     

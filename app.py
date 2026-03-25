@@ -16,6 +16,7 @@ from ui.components.shopee_components import (
 )
 from ui.components.helpers import to_xlsx_bytes, br_money, br_int, safe_div, pct, ensure_cols
 from ui.tabs.guide_tab import render_guide_tab
+from ui.tabs.warning_semanal_tab import render_warning_semanal_tab
 from ui.components.amazon_components import render_amazon_buybox_metrics, get_amazon_buybox_alerts
 from ui.components.shared_ui import render_metric_grid, get_svg_icon, render_metric_card
 
@@ -2086,7 +2087,7 @@ try:
     
     # Processa conforme o canal detectado
     from data_processing.factory import detect_and_process
-    _, df, df_logistics, df_ads = detect_and_process(uploaded_files)
+    _, df, df_logistics, df_ads, df_raw = detect_and_process(uploaded_files)
     
     # Garantir que df_ads e df_logistics não sejam None
     if df_ads is None:
@@ -2536,7 +2537,7 @@ with col4: st.metric(m4_label, m4_val, m4_delta)
 
 st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["DASHBOARD", "LISTAS E EXPORTAÇÃO", "PLANO TÁTICO", "RELATÓRIO ESTRATÉGICO", "GUIA DE USO"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["DASHBOARD", "LISTAS E EXPORTAÇÃO", "PLANO TÁTICO", "RELATÓRIO ESTRATÉGICO", "WARNING SEMANAL", "GUIA DE USO"])
 
 # =========================
 # TAB 1: Dashboard
@@ -3405,7 +3406,13 @@ st.markdown(
 )
 
 # =========================
-# TAB 5: Guia de Uso
+# TAB 5: Warning Semanal
 # =========================
 with tab5:
+    render_warning_semanal_tab(df_f, df_raw=df_raw)
+
+# =========================
+# TAB 6: Guia de Uso
+# =========================
+with tab6:
     render_guide_tab()

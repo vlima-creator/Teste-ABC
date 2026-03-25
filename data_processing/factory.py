@@ -92,12 +92,12 @@ def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.Data
     
     # Processa os arquivos
     try:
-        df_export, df_logistics, df_ads = detected_processor.process(files)
+        df_export, df_logistics, df_ads, df_raw = detected_processor.process(files)
         
         # Adiciona coluna de canal
         df_export['_canal'] = detected_processor.canal_name
         
-        return detected_processor.canal_name, df_export, df_logistics, df_ads
+        return detected_processor.canal_name, df_export, df_logistics, df_ads, df_raw
         
     except Exception as e:
         raise ValueError(f"Erro ao processar arquivos do canal {detected_processor.canal_name}: {str(e)}")

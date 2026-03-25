@@ -38,7 +38,7 @@ class MercadoLivreProcessor(BaseProcessor):
         except Exception:
             return False
     
-    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[pd.DataFrame]]:
         """
         Processa relatório do Mercado Livre.
         """
@@ -48,7 +48,8 @@ class MercadoLivreProcessor(BaseProcessor):
         # ML usa apenas um arquivo
         file = files[0]
         
-        return self._transform_ml_raw(file)
+        export, logistics, ads, raw = self._transform_ml_raw(file)
+        return export, logistics, ads, raw
     
     def _transform_ml_raw(self, file) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
@@ -375,4 +376,5 @@ class MercadoLivreProcessor(BaseProcessor):
         
         df_ads = pd.DataFrame(ads_rows)
         
-        return export, df_logistics, df_ads
+        # Retornar também o DataFrame bruto para análise semanal
+        return export, df_logistics, df_ads, base

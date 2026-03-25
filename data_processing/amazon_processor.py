@@ -47,7 +47,7 @@ class AmazonProcessor(BaseProcessor):
         except Exception:
             return False
     
-    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[pd.DataFrame]]:
         """
         Processa relatórios da Amazon com busca profunda de colunas.
         """
@@ -167,7 +167,8 @@ class AmazonProcessor(BaseProcessor):
             
         df_final = df_final.drop(columns=['curva_abc'], errors='ignore')
         
-        return df_final, pd.DataFrame(), pd.DataFrame()
+        df_raw = pd.DataFrame()  # Amazon não fornece dados brutos com data
+        return df_final, pd.DataFrame(), pd.DataFrame(), df_raw
 
     def _process_single_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """Processa um único DataFrame da Amazon."""
