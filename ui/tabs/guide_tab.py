@@ -11,104 +11,177 @@ def render_guide_tab():
         unsafe_allow_html=True
     )
 
-    # Seção 1: Primeiros Passos
-    st.markdown("### 🚀 Como Iniciar sua Análise")
-    col1, col2 = st.columns(2)
+    # Seção 1: Fluxo de Trabalho
+    st.markdown("### 🚀 Fluxo de Trabalho Recomendado")
+    
+    col1, col2, col3 = st.columns(3)
     
     with col1:
+        st.info("**1. Extração de Dados**")
         st.markdown(
             """
-            Para extrair o máximo de inteligência da ferramenta, siga o fluxo de processamento:
-            
-            O primeiro passo é a **Seleção do Canal** no menu lateral. Cada marketplace possui métricas e comportamentos únicos que a ferramenta interpreta de forma distinta. Após selecionar o canal, realize a **Preparação dos Arquivos** baixando os relatórios brutos diretamente das centrais de vendedor, sem realizar edições manuais que possam corromper a estrutura de dados.
-            
-            Com os arquivos em mãos, utilize a área de **Upload de Dados**. O sistema detectará automaticamente o formato e processará as informações em segundos. Navegue pelo **Dashboard** explorando a Curva ABC e as Métricas de Saúde para identificar gargalos e oportunidades imediatas em sua operação.
+            Baixe os relatórios diretamente das centrais de vendedor. 
+            **Importante:** Não abra ou salve os arquivos no Excel antes do upload, pois isso pode alterar o formato das datas e números.
             """
         )
-
+        
     with col2:
+        st.info("**2. Upload e Detecção**")
         st.markdown(
             """
-            | Canal | Relatório Principal | Onde Baixar |
-            | :--- | :--- | :--- |
-            | **Amazon** | Detalhes de vendas e tráfego | Relatórios > Negócios > Por ASIN |
-            | **Mercado Livre** | Relatório de Vendas (Excel) | Vendas > Vendas > Ícone Download |
-            | **Shopee** | Performance de Produto | Informações Gerenciais > Produto |
-            
-            *Certifique-se de baixar o período de 120 dias (4 meses) para o Mercado Livre para uma análise histórica completa.*
+            Arraste os arquivos para a área de upload. O sistema identificará automaticamente se os dados são do **Mercado Livre**, **Shopee** ou **Amazon**.
+            """
+        )
+        
+    with col3:
+        st.info("**3. Análise e Ação**")
+        st.markdown(
+            """
+            Navegue pelas abas de diagnóstico. Identifique produtos que estão perdendo performance e aplique as ações recomendadas pelo sistema.
             """
         )
 
     st.markdown("---")
 
-    # Seção 2: Inteligência por Canal
-    st.markdown("### 💡 Inteligência e Estratégia por Canal")
+    # Seção 2: Detalhes por Canal
+    st.markdown("### 📊 Especificações por Canal")
     
-    tab_ml, tab_shopee, tab_amazon = st.tabs([
-        "📦 Mercado Livre (Giro e Logística)", 
-        "📱 Shopee (Funil e Engajamento)", 
-        "🛡️ Amazon (Buy Box e SEO)"
-    ])
+    with st.expander("📦 Mercado Livre - Análise de Giro e Logística", expanded=True):
+        col_ml_1, col_ml_2 = st.columns([2, 1])
+        with col_ml_1:
+            st.markdown(
+                """
+                A análise do Mercado Livre é focada na **estabilidade de vendas** e **eficiência logística**.
+                
+                *   **Período Ideal:** Baixe o relatório de vendas dos últimos **120 dias**.
+                *   **Buckets Temporais:** O sistema divide as vendas em 4 períodos (0-30, 31-60, 61-90, 91-120 dias). Isso permite ver se um produto está em tendência de alta ou queda.
+                *   **Logística:** Identificamos automaticamente vendas via **Full, Flex, Coleta e Correios**.
+                *   **Publicidade:** Separamos o que é venda orgânica do que veio via **Mercado Ads**.
+                """
+            )
+        with col_ml_2:
+            st.markdown(
+                """
+                **Onde baixar:**
+                1. Vendas > Vendas
+                2. Ícone de Download
+                3. Selecionar período (120 dias)
+                4. Formato Excel
+                """
+            )
 
-    with tab_ml:
-        st.markdown(
-            """
-            No **Mercado Livre**, o sucesso é determinado pela velocidade de giro e pela eficiência da malha logística. A análise de **Buckets Temporais (30/60/90/120 dias)** permite identificar a constância de suas vendas. Um produto que hoje é Classe "A", mas era "C" há 90 dias, indica uma tendência de alta que exige atenção redobrada ao estoque.
-            
-            A **Penetração de Logística** é o indicador crucial de conversão. Vendas via **Full** e **Flex** tendem a ter taxas de conversão significativamente superiores ao envio convencional. Se seus produtos de curva "A" possuem baixa penetração no Full, sua prioridade estratégica deve ser o envio imediato de estoque para o centro de distribuição do Mercado Livre.
-            
-            | Métrica ML | O que observar | Ação Recomendada |
-            | :--- | :--- | :--- |
-            | **Impacto de Ads** | % de vendas via publicidade | Se > 30% em Curva A, revise o ACOS para proteger a margem. |
-            | **Curva ABC Dinâmica** | Mudança de classe entre períodos | Produtos que caem de A para B precisam de revisão de preço ou oferta. |
-            | **Mix de Logística** | Equilíbrio entre Full/Flex/Coleta | Priorize o Full para produtos de alto giro (Curva A). |
-            """
-        )
+    with st.expander("📱 Shopee - Funil de Conversão e Rejeição"):
+        col_sh_1, col_sh_2 = st.columns([2, 1])
+        with col_sh_1:
+            st.markdown(
+                """
+                Na Shopee, o foco é o **comportamento do usuário** e o funil de vendas.
+                
+                *   **Arquivos Aceitos:** Você pode subir até 3 arquivos (Performance de Produto, Vendas e Tráfego). O de **Performance de Produto** é o principal.
+                *   **Taxa de Rejeição:** Indica visitantes que saíram sem interagir. Se estiver alta, revise sua foto principal e título.
+                *   **Conversão de Carrinho:** Mostra se o cliente desiste no fechamento (pode ser frete caro ou falta de cupons).
+                *   **Nota:** A análise Shopee foca nos últimos 30 dias.
+                """
+            )
+        with col_sh_2:
+            st.markdown(
+                """
+                **Onde baixar:**
+                1. Informações Gerenciais
+                2. Aba Produto
+                3. Performance de Produto
+                4. Exportar (Excel)
+                """
+            )
 
-    with tab_shopee:
-        st.markdown(
-            """
-            Na **Shopee**, a análise é centrada no comportamento do usuário dentro do aplicativo e no **Funil de Conversão**. Monitoramos o caminho desde a visita até o pedido pago para identificar onde você está perdendo dinheiro.
-            
-            A **Taxa de Rejeição** é um indicador crucial: ela mede a porcentagem de visitantes que chegam à sua página de produto e a abandonam imediatamente, sem interagir (clicar em fotos, ler descrição, adicionar ao carrinho). Uma taxa de rejeição alta indica que a **primeira impressão** do seu anúncio (foto principal, título, preço) não foi atrativa o suficiente para reter o interesse do comprador. Isso pode ser causado por imagens de baixa qualidade, títulos confusos ou irrelevantes, ou um preço que não se alinha às expectativas. Uma alta rejeição não só afasta clientes, mas também sinaliza para o algoritmo da Shopee que seu anúncio pode não ser relevante, impactando negativamente seu posicionamento nas buscas.
-            
-            A métrica de **Conversão de Carrinho** revela se o problema está na oferta final. Muitos itens adicionados ao carrinho que não viram pedidos pagos sugerem que o valor do frete ou a falta de cupons competitivos está fazendo o cliente desistir no último momento. Como a Shopee é uma plataforma predominantemente mobile, verifique sempre se sua comunicação visual está otimizada para telas pequenas.
-            
-            | Métrica Shopee | O que observar | Ação Recomendada |
-            | :--- | :--- | :--- |
-            | **Taxa de Rejeição** | % de visitantes que abandonam a página | Revise a foto principal, título e preço para serem mais atrativos. |
-            | **Conversão de Carrinho** | Relação Add Carrinho vs Pedidos | Teste "Cupom de Seguidor" ou "Oferta Relâmpago". |
-            | **Tráfego PC vs App** | Origem das visitas | Otimize imagens e textos para leitura em dispositivos móveis. |
-            """
-        )
-
-    with tab_amazon:
-        st.markdown(
-            """
-            Na **Amazon**, a métrica absoluta é a **Buy Box (Oferta em Destaque)**. Perder a Buy Box significa, na prática, ficar invisível para a grande maioria dos compradores. Se sua porcentagem de Buy Box cair abaixo de 90% em produtos de Curva "A", você tem uma emergência operacional que pode ser causada por preços desalinhados, falta de estoque FBA ou problemas na saúde da conta.
-            
-            Analisamos também o equilíbrio entre **Sessões e Conversão (Unit Session Percentage)**. Se o produto tem muitas sessões mas baixa conversão, o problema é a oferta (preço, avaliações ou descrição). Se a conversão é alta mas as sessões são baixas, o problema é o tráfego, exigindo melhorias em SEO ou maior investimento em Amazon Advertising.
-            
-            | Métrica Amazon | O que observar | Ação Recomendada |
-            | :--- | :--- | :--- |
-            | **Buy Box %** | Tempo como oferta principal | Verifique competitividade de preço e disponibilidade FBA. |
-            | **Sessões** | Volume de tráfego no ASIN | Melhore palavras-chave de busca ou invista em Sponsored Products. |
-            | **Unit Session %** | Taxa de conversão real | Revise imagens secundárias, vídeos e descrição A+. |
-            """
-        )
+    with st.expander("🛡️ Amazon - Buy Box e Visibilidade"):
+        col_am_1, col_am_2 = st.columns([2, 1])
+        with col_am_1:
+            st.markdown(
+                """
+                A métrica vital na Amazon é a **Buy Box (Oferta em Destaque)**.
+                
+                *   **Buy Box %:** Se estiver abaixo de 90% em produtos Curva A, você está perdendo vendas para concorrentes ou por preço desalinhado.
+                *   **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão, o problema é a oferta. Se tem poucas sessões e alta conversão, o problema é o tráfego (SEO/Ads).
+                *   **Multi-arquivos:** Você pode subir vários CSVs de "Relatórios de Negócios" e o sistema irá consolidá-los.
+                """
+            )
+        with col_am_2:
+            st.markdown(
+                """
+                **Onde baixar:**
+                1. Relatórios > Negócios
+                2. Detalhes de vendas e tráfego por ASIN
+                3. Selecionar período
+                4. Exportar (CSV)
+                """
+            )
 
     st.markdown("---")
 
-    # Seção 3: Boas Práticas e Ciclo de Análise
-    st.markdown("### 📈 Ciclo de Análise e Boas Práticas")
-    
+    # Seção 3: Inteligência e Ações
+    st.markdown("### 🧠 Inteligência e Ações Táticas")
     st.markdown(
         """
-        Para manter uma operação saudável e em crescimento, recomendamos um **Ciclo Semanal de Análise**. Compare sempre o desempenho de curto prazo (30 dias) com o histórico de médio prazo (90-120 dias). Produtos que mantêm a estabilidade na Curva "A" são seus **Pilares de Faturamento** e devem ter o estoque protegido a qualquer custo.
-        
-        Evite manipular os arquivos de origem. Abrir um CSV no Excel e salvá-lo novamente pode alterar formatos de data e separadores decimais, impedindo que a ferramenta processe os dados corretamente. Sempre realize o upload do arquivo exatamente como ele foi exportado do marketplace para garantir a precisão total dos indicadores.
+        O sistema gera automaticamente **Cards Táticos** com base no comportamento de cada produto. 
+        Veja como interpretar as principais recomendações:
         """
     )
+    
+    tac1, tac2, tac3 = st.columns(3)
+    
+    with tac1:
+        st.markdown("🛡️ **Defesa de Curva A**")
+        st.caption("Produtos com alto faturamento mas queda de Buy Box ou estoque baixo. Ação imediata necessária para proteger o faturamento.")
+        
+    with tac2:
+        st.markdown("⚔️ **Ataque de Curva B**")
+        st.caption("Produtos com potencial de virar 'A'. Recomenda-se aumento de investimento em Ads ou melhoria de SEO.")
+        
+    with tac3:
+        st.markdown("🧹 **Limpeza de Curva C**")
+        st.caption("Produtos com baixo giro e estoque parado. Recomenda-se liquidação para liberar capital de giro.")
+
+    st.markdown("---")
+
+    # Seção 4: Entendendo a Curva ABC
+    st.markdown("### 📈 Entendendo a Curva ABC")
+    
+    abc_col1, abc_col2, abc_col3 = st.columns(3)
+    
+    with abc_col1:
+        st.success("#### Classe A (80%)")
+        st.markdown("Seus produtos 'estrela'. Representam 80% do seu faturamento. **Ação:** Nunca deixe faltar estoque e monitore a margem de perto.")
+        
+    with abc_col2:
+        st.warning("#### Classe B (15%)")
+        st.markdown("Produtos intermediários. Representam os próximos 15%. **Ação:** Tente transformá-los em 'A' através de melhorias no anúncio ou Ads.")
+        
+    with abc_col3:
+        st.error("#### Classe C (5%)")
+        st.markdown("A 'cauda longa'. Muitos produtos que somam apenas 5% do faturamento. **Ação:** Avalie se vale a pena manter o estoque ou se deve liquidar.")
+
+    st.markdown("---")
+
+    # Seção 5: Solução de Problemas
+    st.markdown("### 🛠️ Solução de Problemas Comuns")
+    
+    with st.expander("O sistema não reconheceu meu arquivo"):
+        st.markdown(
+            """
+            1.  **Formato:** Certifique-se de que é um arquivo original (Excel para ML/Shopee, CSV para Amazon).
+            2.  **Edição:** Se você abriu o arquivo e salvou, ele pode ter mudado. Baixe novamente do marketplace.
+            3.  **Idioma:** O sistema está otimizado para relatórios em Português.
+            """
+        )
+    
+    with st.expander("Os dados parecem incorretos"):
+        st.markdown(
+            """
+            *   **Mercado Livre:** Verifique se você selecionou o período de 120 dias. Se selecionar menos, os buckets de 60/90/120 ficarão zerados.
+            *   **Filtros:** Verifique se há filtros aplicados no menu lateral que estão ocultando dados.
+            """
+        )
 
     st.markdown(
         """
