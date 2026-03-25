@@ -91,7 +91,7 @@ def render_shopee_conversion_funnel(df_export: pd.DataFrame):
     taxa_pagamento = (total_compradores / total_pedidos * 100) if total_pedidos > 0 else 0
     
     # Exibe métricas de conversão em cards
-    from app import render_metric_grid
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
         ("Taxa Add Carrinho", f"{taxa_carrinho:.2f}%", "🛒", "blue"),
         ("Taxa Pedido", f"{taxa_pedido:.2f}%", "📦", "amber"),
@@ -119,7 +119,7 @@ def render_shopee_engagement_metrics(df_export: pd.DataFrame):
     
     st.markdown("### 📈 Métricas de Engajamento")
     
-    from app import render_metric_grid
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
         ("Taxa de Rejeição", f"{taxa_rejeicao_media*100:.1f}%", "📉", "rose"),
         ("Visualizações/Visitante", f"{viz_por_visitante:.2f}", "👀", "blue"),

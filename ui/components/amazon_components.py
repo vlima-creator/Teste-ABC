@@ -20,7 +20,7 @@ def render_amazon_buybox_metrics(df_export):
     pct_perdendo = (len(perdendo) / len(df_export)) * 100 if len(df_export) > 0 else 0
 
     # Cards de Métricas
-    from app import render_metric_grid
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
         ("Média de Buybox", f"{avg_buybox:.1f}%", "📦", "blue"),
         ("Produtos Ganhando (>=80%)", f"{len(ganhando)}", "⭐", "green"),
@@ -111,7 +111,7 @@ def render_amazon_conversion_metrics(df_export):
     total_units = df_export['Qtd total'].sum()
     avg_conv = (total_units / total_sessions * 100) if total_sessions > 0 else 0.0
     
-    from app import render_metric_grid
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
         ("Total de Sessões", f"{int(total_sessions):,}", "👥", "blue"),
         ("Unidades Pedidas", f"{int(total_units):,}", "📦", "amber"),
@@ -139,7 +139,7 @@ def render_amazon_engagement_metrics(df_export):
     total_sessions = df_export['_amazon_sessions'].sum() if '_amazon_sessions' in df_export.columns else 0
     pv_per_session = (total_pv / total_sessions) if total_sessions > 0 else 0
     
-    from app import render_metric_grid
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
         ("Visualizações de Página", f"{int(total_pv):,}", "👀", "blue"),
         ("Páginas / Sessão", f"{pv_per_session:.2f}", "📈", "purple")
