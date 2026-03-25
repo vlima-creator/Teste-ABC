@@ -34,7 +34,7 @@ def detect_channel(files: list) -> str:
     return "Mercado Livre"
 
 
-def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[pd.DataFrame]]:
     """
     Detecta o canal dos arquivos e processa os dados.
     
@@ -47,6 +47,7 @@ def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.Data
         - df_export: DataFrame principal com análise ABC
         - df_logistics: DataFrame com métricas logísticas (ou None)
         - df_ads: DataFrame com métricas de publicidade (ou None)
+        - df_raw: DataFrame bruto com dados de data para análise semanal (ou None)
         
     Raises:
         ValueError: Se o canal não puder ser detectado ou se houver erro no processamento

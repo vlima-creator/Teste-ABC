@@ -51,10 +51,10 @@ class MercadoLivreProcessor(BaseProcessor):
         export, logistics, ads, raw = self._transform_ml_raw(file)
         return export, logistics, ads, raw
     
-    def _transform_ml_raw(self, file) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def _transform_ml_raw(self, file) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """
         Converte o relatório bruto de vendas do Mercado Livre (120 dias) na estrutura 'Export'.
-        Retorna: (df_export, df_logistics, df_ads)
+        Retorna: (df_export, df_logistics, df_ads, df_raw)
         """
         
         def _seek0(f):

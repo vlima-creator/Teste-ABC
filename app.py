@@ -1940,13 +1940,13 @@ def _transform_ml_raw(file) -> tuple:
     for p in ['0-30','31-60','61-90','91-120']:
         out[f'Curva {p}'] = curva_abc(out[f'Fat. {p}'])
 
-    return out, df_logistics, df_ads
+    return out, df_logistics, df_ads, base
 
 
 @st.cache_data
 def load_main(file) -> tuple:
     """Aceita planilha pronta (aba Export) OU relatorio bruto do ML.
-    Retorna: (df_main, df_logistics, df_ads)
+    Retorna: (df_main, df_logistics, df_ads, df_raw)
     """
     if hasattr(file, 'seek'):
         file.seek(0)
@@ -1960,16 +1960,17 @@ def load_main(file) -> tuple:
     except Exception:
         if hasattr(file, 'seek'):
             file.seek(0)
-        df, df_logistics, df_ads = _transform_ml_raw(file)
+        df, df_logistics, df_ads, df_raw = _transform_ml_raw(file)
     else:
         if 'Export' in sheet_names:
             if hasattr(file, 'seek'):
                 file.seek(0)
             df = pd.read_excel(file, sheet_name='Export')
+            df_raw = pd.DataFrame()
         else:
             if hasattr(file, 'seek'):
                 file.seek(0)
-            df, df_logistics, df_ads = _transform_ml_raw(file)
+            df, df_logistics, df_ads, df_raw = _transform_ml_raw(file)
 
     for col in QTY_COLS:
         if col not in df.columns:
@@ -1997,7 +1998,7 @@ def load_main(file) -> tuple:
     df['MLB'] = df['MLB'].astype(str).str.strip()
     df['Título'] = df['Título'].astype(str).str.strip()
 
-    return df, df_logistics, df_ads
+    return df, df_logistics, df_ads, df_raw
 
 
 # =========================
