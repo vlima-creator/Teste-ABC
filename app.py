@@ -2116,7 +2116,7 @@ if df_f.empty:
 # =========================
 df_f["Fat total"] = df_f[FAT_COLS].sum(axis=1)
 df_f["Qtd total"] = df_f[QTY_COLS].sum(axis=1)
-df_f["TM total"] = df_f.apply(lambda r: safe_div(r["Fat total"], r["Qtd total"]), axis=1)
+df_f["TM total"] = df_f.apply(lambda r: safe_div(r["Fat total"], r["Qtd total"]), axis=1).fillna(0.0)
 
 kpi_rows = []
 for p, cc, qq, ff in periods:

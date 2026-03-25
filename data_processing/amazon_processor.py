@@ -134,7 +134,7 @@ class AmazonProcessor(BaseProcessor):
             df_final['_amazon_conv_rate'] = df_final.apply(
                 lambda x: (x['Qtd total'] / x['_amazon_sessions'] * 100) if x['_amazon_sessions'] > 0 else 0.0, 
                 axis=1
-            )
+            ).fillna(0.0)
 
         # Filtro final para garantir que temos dados
         # Mantemos produtos com Buybox mesmo sem vendas, pois o usuário quer monitorar o catálogo ativo
@@ -143,8 +143,8 @@ class AmazonProcessor(BaseProcessor):
         if df_final.empty:
             raise ValueError("Após processar todos os arquivos, nenhum dado válido (vendas ou Buybox) foi encontrado.")
 
-        # Preenchimento de métricas padrão
-        df_final['TM total'] = df_final.apply(lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0, axis=1)
+        # Preenchimento de métricas padrão (Ticket Médio)
+        df_final['TM total'] = df_final.apply(lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0.0, axis=1).fillna(0.0)
         
         # Distribuir para períodos (0-30, 31-60, etc.)
         # Como relatórios da Amazon geralmente não vêm com data por linha, 
@@ -156,8 +156,8 @@ class AmazonProcessor(BaseProcessor):
             df_final[f'Qntd {p}'] = df_final['Qtd total'] if p == '0-30' else 0
             df_final[f'Fat. {p}'] = df_final['Fat total'] if p == '0-30' else 0.0
             
-        # Curva ABC
-        df_final = self.calculate_abc_curve(df_final, 'Fat total')
+        # Curva ABC - Agrupar por MLB para garantir consistência
+        df_final = self.calculate_abc_curve(df_final, 'Fat total', group_col='MLB')
         df_final['Curva 0-30'] = df_final['curva_abc']
         
         # Para Amazon, se não temos dados históricos, vamos assumir que a curva se mantém 

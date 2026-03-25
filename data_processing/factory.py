@@ -60,17 +60,37 @@ def detect_and_process(files: list) -> Tuple[str, pd.DataFrame, Optional[pd.Data
         MercadoLivreProcessor()
     ]
     
-    # Tenta detectar o canal do primeiro arquivo
+    # Tenta detectar o canal percorrendo os arquivos (mais robusto que apenas o primeiro)
     detected_processor = None
-    for processor in processors:
-        if processor.detect(files[0]):
-            detected_processor = processor
+    for file in files:
+        for processor in processors:
+            if processor.detect(file):
+                detected_processor = processor
+                break
+        if detected_processor:
             break
     
     if detected_processor is None:
+        # Tenta uma detecção baseada em extensão se falhar por conteúdo
+        from .mercado_livre_processor import MercadoLivreProcessor
+        from .shopee_processor import ShopeeProcessor
+        
+        for file in files:
+            fname = getattr(file, 'name', '').lower()
+            if fname.endswith(('.xlsx', '.xls')):
+                # Heurística: Excel costuma ser ML ou Shopee
+                detected_processor = MercadoLivreProcessor()
+                break
+            elif fname.endswith('.csv'):
+                # Heurística: CSV costuma ser Amazon
+                from .amazon_processor import AmazonProcessor
+                detected_processor = AmazonProcessor()
+                break
+
+    if detected_processor is None:
         raise ValueError(
-            "Não foi possível detectar o canal do arquivo. "
-            "Certifique-se de que está usando um relatório válido do Mercado Livre, Shopee ou Amazon."
+            "Não foi possível detectar o canal dos arquivos enviados. "
+            "Certifique-se de carregar relatórios originais do Mercado Livre (Excel), Shopee (Excel) ou Amazon (CSV)."
         )
     
     # Processa os arquivos

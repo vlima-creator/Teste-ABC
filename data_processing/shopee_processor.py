@@ -159,12 +159,12 @@ class ShopeeProcessor(BaseProcessor):
         
         # Calcula ticket médio
         df_export['TM total'] = df_export.apply(
-            lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0,
+            lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0.0,
             axis=1
-        )
+        ).fillna(0.0)
         
-        # Calcula curva ABC baseada no faturamento total
-        df_export = self.calculate_abc_curve(df_export, 'Fat total')
+        # Calcula curva ABC baseada no faturamento total - Agrupar por MLB para garantir consistência
+        df_export = self.calculate_abc_curve(df_export, 'Fat total', group_col='MLB')
         
         # Como Shopee tem apenas um período no relatório padrão, replica para todos os períodos
         # para não quebrar a lógica de "Produtos Âncora" e "Plano Tático"

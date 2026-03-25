@@ -292,31 +292,17 @@ class MercadoLivreProcessor(BaseProcessor):
         export = piv_qty.merge(piv_rev, on=['mlb', 'titulo'], how='outer')
         export = export.rename(columns={'mlb': 'MLB', 'titulo': 'Título'})
         
-        # Calcula curva ABC para cada período
+        # Calcula curva ABC para cada período usando a classe base
         for p in ['0-30', '31-60', '61-90', '91-120']:
             fat_col = f'Fat. {p}'
             curva_col = f'Curva {p}'
-            
-            export_sorted = export.sort_values(fat_col, ascending=False).copy()
-            total_fat = export_sorted[fat_col].sum()
-            
-            if total_fat > 0:
-                export_sorted['_pct_acum'] = (export_sorted[fat_col].cumsum() / total_fat) * 100
-                
-                def classify(pct):
-                    if pct <= 80: return 'A'
-                    elif pct <= 95: return 'B'
-                    else: return 'C'
-                
-                export_sorted[curva_col] = export_sorted['_pct_acum'].apply(classify)
-                export_sorted.loc[export_sorted[fat_col] == 0, curva_col] = '-'
-                
-                export = export.merge(export_sorted[['MLB', 'Título', curva_col]], on=['MLB', 'Título'], how='left', suffixes=('', '_new'))
-                if curva_col + '_new' in export.columns:
-                    export[curva_col] = export[curva_col + '_new']
-                    export = export.drop(columns=[curva_col + '_new'])
-            else:
-                export[curva_col] = '-'
+            export = self.calculate_abc_curve(export, fat_col, group_col='MLB')
+            export = export.rename(columns={'curva_abc': curva_col})
+        
+        # Colunas de totais e ticket médio
+        export['Qtd total'] = export[[f'Qntd {p}' for p in ['0-30', '31-60', '61-90', '91-120']]].sum(axis=1)
+        export['Fat total'] = export[[f'Fat. {p}' for p in ['0-30', '31-60', '61-90', '91-120']]].sum(axis=1)
+        export['TM total'] = export.apply(lambda r: r['Fat total'] / r['Qtd total'] if r['Qtd total'] > 0 else 0.0, axis=1).fillna(0.0)
         
         # Métricas logísticas por período
         log_rows = []

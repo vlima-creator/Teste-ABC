@@ -43,16 +43,35 @@ def init_db():
 
 def save_snapshot(metrics):
     """
-    metrics: dict com as chaves correspondentes às colunas da tabela snapshots
+    metrics: dict com as chaves correspondentes às colunas da tabela snapshots.
+    Filtra apenas chaves válidas para evitar erros de SQL.
     """
     init_db()
     conn = sqlite3.connect(DB_PATH)
-    cols = metrics.keys()
+    
+    # Obter colunas válidas da tabela
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(snapshots)")
+    valid_cols = [col[1] for col in cursor.fetchall() if col[1] != 'id' and col[1] != 'timestamp']
+    
+    # Filtrar o dicionário de entrada
+    filtered_metrics = {k: v for k, v in metrics.items() if k in valid_cols}
+    
+    if not filtered_metrics:
+        conn.close()
+        return
+
+    cols = list(filtered_metrics.keys())
     placeholders = ', '.join(['?'] * len(cols))
     sql = f"INSERT INTO snapshots ({', '.join(cols)}) VALUES ({placeholders})"
-    conn.execute(sql, list(metrics.values()))
-    conn.commit()
-    conn.close()
+    
+    try:
+        conn.execute(sql, list(filtered_metrics.values()))
+        conn.commit()
+    except Exception as e:
+        print(f"Erro ao salvar snapshot: {e}")
+    finally:
+        conn.close()
 
 def get_last_snapshot(cliente, canal):
     init_db()
