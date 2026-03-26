@@ -146,9 +146,15 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             # Top 10 Quedas
             if 'Delta %' in df_filtered.columns:
                 st.markdown("📉 **Maiores Quedas de Volume (Sem1 vs Sem2):**")
-                top_drops = df_filtered.sort_values('Delta %').head(10)
-                for _, row in top_drops.iterrows():
-                    st.caption(f"{row[id_col]} - {str(row[title_col])[:40]}... ({row['Delta %']:.1f}%)")
+                # Filtrar produtos que tinham pelo menos 1 venda na Sem2 para evitar -100% irrelevantes
+                # E ordenar pela queda absoluta (Delta Qtd) para mostrar o que mais impactou o volume
+                drops_df = df_filtered[df_filtered['Qntd Sem2'] > 0].copy()
+                if not drops_df.empty:
+                    top_drops = drops_df.sort_values('Delta %').head(10)
+                    for _, row in top_drops.iterrows():
+                        st.caption(f"{row[id_col]} - {str(row[title_col])[:40]}... ({row['Delta %']:.1f}%)")
+                else:
+                    st.caption("Nenhuma queda significativa detectada com vendas na semana anterior.")
         
         with col_v2:
             # Gráfico de evolução do Top 5

@@ -180,20 +180,30 @@ class WeeklyAnalyzer:
         result['Curva Anterior'] = result.get('Curva Sem2', '-')
         result['Curva Atual'] = result.get('Curva Sem1', '-')
         
+        # Delta de Faturamento
         fat_sem1 = result.get('Fat. Sem1', 0)
         fat_sem2 = result.get('Fat. Sem2', 0)
-        
         result['Delta Fat'] = fat_sem1 - fat_sem2
-        result['Delta %'] = result.apply(
+        result['Delta % Fat'] = result.apply(
             lambda r: ((r.get('Fat. Sem1', 0) - r.get('Fat. Sem2', 0)) / r.get('Fat. Sem2', 1) * 100) 
                      if r.get('Fat. Sem2', 0) > 0 else 0,
+            axis=1
+        ).fillna(0)
+
+        # Delta de Volume (Quantidade) - NOVO
+        qtd_sem1 = result.get('Qntd Sem1', 0)
+        qtd_sem2 = result.get('Qntd Sem2', 0)
+        result['Delta Qtd'] = qtd_sem1 - qtd_sem2
+        result['Delta %'] = result.apply(
+            lambda r: ((r.get('Qntd Sem1', 0) - r.get('Qntd Sem2', 0)) / r.get('Qntd Sem2', 1) * 100) 
+                     if r.get('Qntd Sem2', 0) > 0 else 0,
             axis=1
         ).fillna(0)
         
         def classify_warning(row):
             curva_atual = row.get('Curva Atual', '-')
             curva_anterior = row.get('Curva Anterior', '-')
-            delta_pct = row.get('Delta %', 0)
+            delta_pct_fat = row.get('Delta % Fat', 0)
             
             if (curva_anterior == 'A' and curva_atual in ['B', 'C', '-']) or \
                (curva_anterior == 'B' and curva_atual in ['C', '-']):
@@ -201,7 +211,7 @@ class WeeklyAnalyzer:
             elif (curva_anterior in ['B', 'C', '-'] and curva_atual == 'A') or \
                  (curva_anterior in ['C', '-'] and curva_atual == 'B'):
                 return '🟢 Recuperação'
-            elif delta_pct < -30 and curva_atual == curva_anterior:
+            elif delta_pct_fat < -30 and curva_atual == curva_anterior:
                 return '🟡 Atenção'
             else:
                 return '🟢 Estável'
