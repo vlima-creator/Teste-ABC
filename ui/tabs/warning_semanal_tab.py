@@ -98,60 +98,75 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
                 "Status",
                 status_options,
                 default=status_options,
-                label_visibility="collapsed"
+                key="warning_status_filter"
             )
             df_filtered = df_analysis[df_analysis['Status Warning'].isin(selected_status)]
         else:
-            df_filtered = df_analysis
-    
+            df_filtered = df_analysis.copy()
+            
     with col3:
-        st.markdown("**Buscar Produto:**")
-        search_term = st.text_input(
-            "Buscar",
-            value="",
-            label_visibility="collapsed",
-            placeholder="MLB ou Título..."
-        )
-        if search_term:
-            search_lower = search_term.lower()
+        st.markdown("**Pesquisar Produto:**")
+        search = st.text_input("Buscar por MLB ou Título", placeholder="Ex: MLB123...")
+        if search:
             df_filtered = df_filtered[
-                (df_filtered['MLB'].astype(str).str.lower().str.contains(search_lower)) |
-                (df_filtered['Título'].astype(str).str.lower().str.contains(search_lower))
+                df_filtered['MLB'].str.contains(search, case=False, na=False) | 
+                df_filtered['Título'].str.contains(search, case=False, na=False)
             ]
+
+    # ===== CONTEÚDO PRINCIPAL =====
+    if df_filtered.empty:
+        st.info("Nenhum produto encontrado com os filtros selecionados.")
+        return
+
+    # Identificar colunas de volume (Qntd SemX)
+    volume_cols = [c for c in df_filtered.columns if c.startswith('Qntd Sem')]
+    volume_cols.sort(reverse=True) # Sem1, Sem2...
     
-    st.markdown("---")
-    
-    # ===== VISÃO 1: VOLUME =====
+    # Identificar colunas de faturamento (Fat. SemX)
+    fat_cols = [c for c in df_filtered.columns if c.startswith('Fat. Sem')]
+    fat_cols.sort(reverse=True)
+
+    # Determinar colunas de ID e Título dinamicamente para evitar KeyError
+    id_col = 'MLB' if 'MLB' in df_filtered.columns else 'SKU' if 'SKU' in df_filtered.columns else 'ASIN' if 'ASIN' in df_filtered.columns else None
+    title_col = 'Título' if 'Título' in df_filtered.columns else 'Product Name' if 'Product Name' in df_filtered.columns else 'Nome do Produto' if 'Nome do Produto' in df_filtered.columns else None
+
+    if not id_col or not title_col:
+        # Fallback para as primeiras colunas se não encontrar os nomes esperados
+        id_col = df_filtered.columns[0]
+        title_col = df_filtered.columns[1]
+
     if view_mode == "📊 Volume":
-        st.subheader("📊 Análise de Volume Semanal")
+        col_v1, col_v2 = st.columns([1, 1])
         
-        # Preparar dados para visualização
-        volume_cols = [col for col in df_filtered.columns if col.startswith('Qntd Sem')]
-        if volume_cols:
-            # Gráfico de evolução
-            chart_data = df_filtered[['MLB', 'Título'] + volume_cols].head(10).copy()
-            chart_data['Produto'] = chart_data['MLB'] + ' - ' + chart_data['Título'].astype(str).str[:30]
-            
-            # Preparar dados para gráfico
-            plot_data = []
-            for _, row in chart_data.iterrows():
-                for col in volume_cols:
-                    semana = col.replace('Qntd ', '')
-                    plot_data.append({
-                        'Produto': row['Produto'],
-                        'Semana': semana,
-                        'Quantidade': row[col]
-                    })
-            
-            if plot_data:
-                plot_df = pd.DataFrame(plot_data)
+        with col_v1:
+            # Top 10 Quedas
+            if 'Delta %' in df_filtered.columns:
+                st.markdown("📉 **Maiores Quedas de Volume (Sem1 vs Sem2):**")
+                top_drops = df_filtered.sort_values('Delta %').head(10)
+                for _, row in top_drops.iterrows():
+                    st.caption(f"{row[id_col]} - {row[title_col][:40]}... ({row['Delta %']:.1f}%)")
+        
+        with col_v2:
+            # Gráfico de evolução do Top 5
+            top_5 = df_filtered.sort_values('Qtd Total', ascending=False).head(5)
+            if not top_5.empty:
+                plot_data = []
+                for _, row in top_5.iterrows():
+                    for sem in reversed(volume_cols):
+                        plot_data.append({
+                            'Produto': row[id_col],
+                            'Semana': sem.replace('Qntd ', ''),
+                            'Quantidade': row[sem]
+                        })
+                
+                df_plot = pd.DataFrame(plot_data)
                 fig = px.line(
-                    plot_df,
-                    x='Semana',
+                    df_plot, 
+                    x='Semana', 
                     y='Quantidade',
                     color='Produto',
                     markers=True,
-                    title='Evolução de Vendas (Top 10 Produtos)',
+                    title='Evolução de Vendas (Top 5 Produtos)',
                     labels={'Quantidade': 'Unidades Vendidas', 'Semana': 'Semana'}
                 )
                 fig.update_layout(
@@ -163,7 +178,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         
         # Tabela de volume
         st.markdown("**Detalhamento de Volume por Semana:**")
-        volume_display = df_filtered[['MLB', 'Título'] + volume_cols + ['Qtd Total']].copy()
+        volume_display = df_filtered[[id_col, title_col] + volume_cols + ['Qtd Total']].copy()
         volume_display = volume_display.sort_values('Qtd Total', ascending=False)
         
         # Formatar números
@@ -176,159 +191,48 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         # Download
         st.download_button(
             "📥 Baixar Volume (Excel)",
-            data=to_xlsx_bytes(df_filtered[['MLB', 'Título'] + volume_cols + ['Qtd Total']]),
+            data=to_xlsx_bytes(df_filtered[[id_col, title_col] + volume_cols + ['Qtd Total']]),
             file_name="warning_volume.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
-    
-    # ===== VISÃO 2: FATURAMENTO =====
+
     elif view_mode == "💰 Faturamento":
-        st.subheader("💰 Análise de Faturamento Semanal")
-        
-        # Preparar dados para visualização
-        fat_cols = [col for col in df_filtered.columns if col.startswith('Fat. Sem')]
-        if fat_cols:
-            # Gráfico de evolução
-            chart_data = df_filtered[['MLB', 'Título'] + fat_cols].head(10).copy()
-            chart_data['Produto'] = chart_data['MLB'] + ' - ' + chart_data['Título'].astype(str).str[:30]
-            
-            # Preparar dados para gráfico
-            plot_data = []
-            for _, row in chart_data.iterrows():
-                for col in fat_cols:
-                    semana = col.replace('Fat. ', '')
-                    plot_data.append({
-                        'Produto': row['Produto'],
-                        'Semana': semana,
-                        'Faturamento': row[col]
-                    })
-            
-            if plot_data:
-                plot_df = pd.DataFrame(plot_data)
-                fig = px.line(
-                    plot_df,
-                    x='Semana',
-                    y='Faturamento',
-                    color='Produto',
-                    markers=True,
-                    title='Evolução de Faturamento (Top 10 Produtos)',
-                    labels={'Faturamento': 'Faturamento (R$)', 'Semana': 'Semana'}
-                )
-                fig.update_layout(
-                    template='plotly_dark',
-                    hovermode='x unified',
-                    height=400
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        
-        # Tabela de faturamento
+        # Similar ao volume, mas para faturamento
         st.markdown("**Detalhamento de Faturamento por Semana:**")
-        fat_display = df_filtered[['MLB', 'Título', 'Status Warning'] + fat_cols + ['Fat Total']].copy()
+        fat_display = df_filtered[[id_col, title_col] + fat_cols + ['Fat Total']].copy()
         fat_display = fat_display.sort_values('Fat Total', ascending=False)
         
-        # Formatar valores
         for col in fat_cols + ['Fat Total']:
             if col in fat_display.columns:
-                fat_display[col] = fat_display[col].apply(lambda x: br_money(float(x)) if pd.notna(x) else '-')
+                fat_display[col] = fat_display[col].apply(br_money)
         
         st.dataframe(fat_display, use_container_width=True, hide_index=True, height=400)
         
-        # Download
         st.download_button(
             "📥 Baixar Faturamento (Excel)",
-            data=to_xlsx_bytes(df_filtered[['MLB', 'Título'] + fat_cols + ['Fat Total']]),
+            data=to_xlsx_bytes(df_filtered[[id_col, title_col] + fat_cols + ['Fat Total']]),
             file_name="warning_faturamento.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
-    
-    # ===== VISÃO 3: CURVA ABC =====
+
     elif view_mode == "📈 Curva ABC":
-        st.subheader("📈 Evolução de Curva ABC Semanal")
+        # Mostrar mudança de curva
+        st.markdown("**Mudança de Curva ABC (Semana Atual vs Anterior):**")
         
-        # Preparar dados
-        curva_cols = [col for col in df_filtered.columns if col.startswith('Curva Sem')]
-        if curva_cols:
-            # Tabela de curva ABC
-            st.markdown("**Classificação ABC por Semana:**")
-            curva_display = df_filtered[['MLB', 'Título', 'Status Warning'] + curva_cols].copy()
-            curva_display = curva_display.sort_values('MLB')
-            
-            st.dataframe(curva_display, use_container_width=True, hide_index=True, height=400)
-            
-            # Distribuição de curvas por semana
-            st.markdown("**Distribuição de Curvas por Semana:**")
-            
-            dist_data = []
-            for col in curva_cols:
-                semana = col.replace('Curva ', '')
-                counts = df_filtered[col].value_counts()
-                for curva in ['A', 'B', 'C', '-']:
-                    dist_data.append({
-                        'Semana': semana,
-                        'Curva': curva,
-                        'Quantidade': counts.get(curva, 0)
-                    })
-            
-            if dist_data:
-                dist_df = pd.DataFrame(dist_data)
-                fig = px.bar(
-                    dist_df,
-                    x='Semana',
-                    y='Quantidade',
-                    color='Curva',
-                    barmode='stack',
-                    title='Distribuição de Produtos por Curva ABC',
-                    color_discrete_map={'A': '#4ade80', 'B': '#fbbf24', 'C': '#ef4444', '-': '#9ca3af'}
-                )
-                fig.update_layout(
-                    template='plotly_dark',
-                    height=400
-                )
-                st.plotly_chart(fig, use_container_width=True)
+        abc_cols = [c for c in df_filtered.columns if c.startswith('Curva Sem')]
+        abc_cols.sort(reverse=True)
         
-        # Download
+        abc_display = df_filtered[[id_col, title_col, 'Curva Anterior', 'Curva Atual', 'Status Warning']].copy()
+        
+        # Colorir células de status seria ideal, mas no dataframe simples:
+        st.dataframe(abc_display, use_container_width=True, hide_index=True, height=500)
+        
         st.download_button(
-            "📥 Baixar Curva ABC (Excel)",
-            data=to_xlsx_bytes(df_filtered[['MLB', 'Título', 'Status Warning'] + curva_cols]),
-            file_name="warning_curva_abc.xlsx",
+            "📥 Baixar Análise ABC (Excel)",
+            data=to_xlsx_bytes(df_filtered[[id_col, title_col, 'Curva Anterior', 'Curva Atual', 'Status Warning']]),
+            file_name="warning_abc.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
-    
-    # ===== ALERTAS DETALHADOS =====
-    st.markdown("---")
-    st.subheader("🚨 Alertas Detalhados")
-    
-    if 'Status Warning' in df_analysis.columns:
-        # Filtrar apenas alertas críticos e atenção
-        alertas = df_analysis[
-            df_analysis['Status Warning'].isin(['🔴 Queda Crítica', '🟡 Atenção'])
-        ].sort_values('Delta %', ascending=True).head(20)
-        
-        if not alertas.empty:
-            alert_cols = ['MLB', 'Título', 'Status Warning', 'Curva Anterior', 'Curva Atual', 'Delta %']
-            alert_display = alertas[alert_cols].copy()
-            alert_display['Delta %'] = alert_display['Delta %'].apply(lambda x: f"{x:.1f}%")
-            
-            st.dataframe(alert_display, use_container_width=True, hide_index=True, height=300)
-        else:
-            st.success("✅ Nenhum alerta crítico no momento!")
-    
-    # ===== INFORMAÇÕES ADICIONAIS =====
-    st.markdown("---")
-    with st.expander("ℹ️ Como interpretar os alertas"):
-        st.markdown("""
-        - **🔴 Queda Crítica**: Produto caiu de curva (A→B/C, B→C) - Requer ação imediata
-        - **🟡 Atenção**: Faturamento caiu >30% mantendo curva - Monitorar de perto
-        - **🟢 Recuperação**: Produto subiu de curva - Excelente desempenho
-        - **🟢 Estável**: Mantém performance - Continuar estratégia atual
-        
-        **Buckets Semanais:**
-        - **Sem1**: Últimos 7 dias
-        - **Sem2**: 8-14 dias atrás
-        - **Sem3**: 15-21 dias atrás
-        - **Sem4**: 22-28 dias atrás
-        - **Sem5**: 29-35 dias atrás
-        """)
