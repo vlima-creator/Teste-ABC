@@ -167,7 +167,9 @@ class AmazonProcessor(BaseProcessor):
             
         df_final = df_final.drop(columns=['curva_abc'], errors='ignore')
         
-        df_raw = pd.DataFrame()  # Amazon não fornece dados brutos com data
+        # Tenta usar df_final como df_raw se houver coluna de data
+        df_raw = df_final.copy() if 'data' in df_final.columns else pd.DataFrame()
+        
         return df_final, pd.DataFrame(), pd.DataFrame(), df_raw
 
     def _process_single_df(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -261,6 +263,12 @@ class AmazonProcessor(BaseProcessor):
             df_export['Fat total'] = df[fat_col].apply(clean_money)
         else:
             df_export['Fat total'] = 0.0
+            
+        # 5. Data (Opcional para análise semanal)
+        date_patterns = ['date', 'data', 'data do pedido', 'order date', 'data da venda']
+        date_col = next((c for c in df.columns if any(p in c.lower() for p in date_patterns)), None)
+        if date_col:
+            df_export['data'] = pd.to_datetime(df[date_col], errors='coerce')
 
         # 5. Buy Box % (Oferta em Destaque)
         buybox_patterns = ['porcentagem de ofertas em destaque', 'buy box percentage', 'buy box %', 'featured offer percentage', 'oferta em destaque']

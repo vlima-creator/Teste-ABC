@@ -22,9 +22,25 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     
     # Se não temos dados brutos, tenta extrair do df_export
     if df_raw is None or df_raw.empty:
-        st.warning("⚠️ Dados brutos não disponíveis para análise semanal detalhada. Usando dados agregados.")
+        st.warning("⚠️ Dados brutos não disponíveis para análise semanal detalhada. Usando dados agregados de 30 dias.")
         # Usar dados agregados disponíveis
         df_analysis = df_export.copy()
+        
+        # Mapear colunas de 30 dias para o formato semanal (Sem1) para não quebrar a UI
+        # Isso permite que Amazon e Shopee mostrem pelo menos o estado atual
+        if 'Qntd 0-30' in df_analysis.columns:
+            df_analysis['Qntd Sem1'] = df_analysis['Qntd 0-30']
+            df_analysis['Fat. Sem1'] = df_analysis.get('Fat. 0-30', 0)
+            df_analysis['Curva Sem1'] = df_analysis.get('Curva 0-30', '-')
+            
+            # Criar colunas vazias para as outras semanas para evitar erros de visualização
+            for i in range(2, 6):
+                df_analysis[f'Qntd Sem{i}'] = 0
+                df_analysis[f'Fat. Sem{i}'] = 0.0
+                df_analysis[f'Curva Sem{i}'] = '-'
+        
+        # Adicionar cálculos de warning (mesmo que vazios ou estáveis)
+        df_analysis = WeeklyAnalyzer.calculate_warnings(df_analysis)
     else:
         # Calcular análise semanal a partir dos dados brutos
         df_analysis = WeeklyAnalyzer.calculate_weekly_curves(df_raw)

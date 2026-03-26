@@ -96,7 +96,9 @@ class ShopeeProcessor(BaseProcessor):
         # Shopee não tem dados de logística e ads no formato do ML
         df_logistics = pd.DataFrame()
         df_ads = pd.DataFrame()
-        df_raw = pd.DataFrame()  # Shopee não fornece dados brutos com data
+        
+        # Tenta usar df_export como df_raw se houver coluna de data
+        df_raw = df_export.copy() if 'data' in df_export.columns else pd.DataFrame()
         
         return df_export, df_logistics, df_ads, df_raw
     
@@ -199,6 +201,12 @@ class ShopeeProcessor(BaseProcessor):
         df_export['_shopee_add_carrinho'] = pd.to_numeric(df_pai['Unidades (adicionar ao carrinho)'], errors='coerce').fillna(0).astype(int)
         df_export['_shopee_compradores'] = pd.to_numeric(df_pai['Compradores (Pedidos pago)'], errors='coerce').fillna(0).astype(int)
         
+        # Tenta capturar data se disponível (raro em relatórios de performance, mas possível em outros)
+        date_patterns = ['data', 'date', 'data do pedido', 'order date']
+        date_col = next((c for c in df_pai.columns if any(p in str(c).lower() for p in date_patterns)), None)
+        if date_col:
+            df_export['data'] = pd.to_datetime(df_pai[date_col], errors='coerce')
+            
         # Remove coluna temporária
         df_export = df_export.drop(columns=['curva_abc'], errors='ignore')
         
