@@ -21,16 +21,20 @@ class WeeklyAnalyzer:
         
         df = df_raw.copy()
         
-        # Identificar coluna de data dinamicamente
-        # Suporta: 'Data', 'Data da venda', 'Date', 'Order Date', 'Data do pedido'
-        date_col = next((c for c in df.columns if c.lower() in ['data', 'data da venda', 'date', 'order date', 'data do pedido']), None)
+        # Prioridade 1: Coluna 'data' (Mercado Livre original)
+        # Prioridade 2: Outras variações comuns
+        date_col = None
+        if 'data' in df.columns:
+            date_col = 'data'
+        else:
+            date_col = next((c for c in df.columns if c.lower() in ['data da venda', 'date', 'order date', 'data do pedido']), None)
         
         if date_col:
-            # Para formatos como '26/01/2026-24/02/2026' (Shopee Overview), pegamos a data final ou ignoramos se for range
-            # Mas o ideal é que o df_raw contenha transações individuais ou diárias
             df['data_processada'] = pd.to_datetime(df[date_col], errors='coerce')
+            # Se a coluna original não era 'data', criamos para manter compatibilidade com lógica antiga
+            if date_col != 'data':
+                df['data'] = df['data_processada']
         else:
-            # Se não houver coluna de data, não podemos fazer análise semanal
             return df
         
         # Remover linhas sem data
@@ -62,33 +66,27 @@ class WeeklyAnalyzer:
     @staticmethod
     def calculate_weekly_curves(df_raw: pd.DataFrame, base_date: datetime = None) -> pd.DataFrame:
         """
-        Calcula curvas ABC semanais com suporte a múltiplas plataformas (ML, Amazon, Shopee).
+        Calcula curvas ABC semanais com suporte a múltiplas plataformas.
         """
         df = WeeklyAnalyzer.add_weekly_analysis(df_raw, base_date)
         
         if df.empty:
-            # Se não houver dados temporais, tentamos processar como dados agregados se as colunas existirem
-            if 'Qtd Total' in df_raw.columns or 'Fat Total' in df_raw.columns:
-                return df_raw
             return pd.DataFrame()
             
-        # Identificar colunas de ID dinamicamente
-        # ML: 'MLB', 'SKU'
-        # Amazon: 'ASIN (child)', 'ASIN (parent)', 'SKU'
-        # Shopee: 'ID do Item', 'SKU da Variação', 'SKU Principle'
-        id_priority = ['MLB', 'ASIN (child)', 'SKU da Variação', 'SKU Principle', 'ID do Item', 'SKU', 'ASIN', 'ID']
+        # Identificar colunas de ID dinamicamente, priorizando MLB (Mercado Livre)
+        id_priority = ['mlb', 'MLB', 'ASIN (child)', 'SKU da Variação', 'SKU Principle', 'ID do Item', 'SKU', 'ASIN', 'ID']
         id_col = next((c for c in id_priority if c in df.columns), df.columns[0])
         
-        # Identificar colunas de Título
-        title_priority = ['Título', 'Produto', 'Product Name', 'Nome do Produto', 'Item Name', 'titulo']
+        # Identificar colunas de Título, priorizando 'titulo' (Mercado Livre)
+        title_priority = ['titulo', 'Título', 'Produto', 'Product Name', 'Nome do Produto', 'Item Name']
         title_col = next((c for c in title_priority if c in df.columns), df.columns[1])
         
-        # Identificar colunas de Quantidade
-        qty_priority = ['Unidades pedidas', 'Unidades (Pedido pago)', 'Unidades', 'Quantidade', 'Quantity', 'Qty', 'unidades vendidas', 'Produto Pago']
+        # Identificar colunas de Quantidade, priorizando 'unidades' (Mercado Livre)
+        qty_priority = ['unidades', 'Unidades pedidas', 'Unidades (Pedido pago)', 'Unidades', 'Quantidade', 'Quantity', 'Qty', 'unidades vendidas', 'Produto Pago']
         qty_col = next((c for c in qty_priority if c in df.columns), None)
         
-        # Identificar colunas de Faturamento
-        rev_priority = ['Vendas de produtos pedidos', 'Vendas (Pedido pago) (BRL)', 'Receita', 'Faturamento', 'Revenue', 'Total (BRL)', 'Valor Total']
+        # Identificar colunas de Faturamento, priorizando 'receita' (Mercado Livre)
+        rev_priority = ['receita', 'Vendas de produtos pedidos', 'Vendas (Pedido pago) (BRL)', 'Receita', 'Faturamento', 'Revenue', 'Total (BRL)', 'Valor Total']
         rev_col = next((c for c in rev_priority if c in df.columns), None)
 
         # Fallback se não encontrar colunas de valores
@@ -124,13 +122,18 @@ class WeeklyAnalyzer:
         piv_rev = piv_rev.rename(columns={sem: f'Fat. {sem}' for sem in ['Sem1', 'Sem2', 'Sem3', 'Sem4', 'Sem5']})
         
         export = piv_qty.merge(piv_rev, on=['temp_id', 'temp_title'], how='outer')
-        export = export.rename(columns={'temp_id': id_col, 'temp_title': title_col})
+        
+        # Renomear de volta para os nomes originais (ou MLB/Título se for ML)
+        final_id_name = 'MLB' if id_col.lower() in ['mlb', 'sku'] else id_col
+        final_title_name = 'Título' if title_col.lower() in ['titulo', 'título'] else title_col
+        
+        export = export.rename(columns={'temp_id': final_id_name, 'temp_title': final_title_name})
         
         # Calcular curvas ABC semanais
         for sem in ['Sem1', 'Sem2', 'Sem3', 'Sem4', 'Sem5']:
             fat_col = f'Fat. {sem}'
             curva_col = f'Curva {sem}'
-            export = WeeklyAnalyzer.calculate_abc_curve(export, fat_col, id_col, title_col)
+            export = WeeklyAnalyzer.calculate_abc_curve(export, fat_col, final_id_name, final_title_name)
             export = export.rename(columns={'curva_abc': curva_col})
         
         # Totais
