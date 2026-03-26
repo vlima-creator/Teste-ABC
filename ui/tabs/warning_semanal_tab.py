@@ -29,7 +29,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         # Calcular análise semanal a partir dos dados brutos
         df_analysis = WeeklyAnalyzer.calculate_weekly_curves(df_raw)
         if df_analysis.empty:
-            st.error("Erro ao processar dados semanais.")
+            st.error("Não foi possível processar os dados semanais. Verifique se o arquivo contém colunas de Data, SKU/ID e Valores.")
             return
         
         # Adicionar cálculos de warning
@@ -89,6 +89,13 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             horizontal=False
         )
     
+    # Identificar colunas de ID e Título dinamicamente
+    id_priority = ['MLB', 'ASIN (child)', 'SKU da Variação', 'SKU Principle', 'ID do Item', 'SKU', 'ASIN', 'ID']
+    id_col = next((c for c in id_priority if c in df_analysis.columns), df_analysis.columns[0])
+    
+    title_priority = ['Título', 'Produto', 'Product Name', 'Nome do Produto', 'Item Name', 'titulo']
+    title_col = next((c for c in title_priority if c in df_analysis.columns), df_analysis.columns[1])
+
     # ===== FILTROS =====
     with col2:
         st.markdown("**Filtrar por Status:**")
@@ -106,10 +113,6 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             
     with col3:
         st.markdown("**Pesquisar Produto:**")
-        # Identificar colunas de ID e Título dinamicamente para a busca
-        id_col = next((c for c in df_filtered.columns if c.upper() in ['MLB', 'SKU', 'ASIN', 'ID']), df_filtered.columns[0])
-        title_col = next((c for c in df_filtered.columns if c.lower() in ['título', 'titulo', 'product name', 'nome do produto', 'item name']), df_filtered.columns[1])
-        
         search = st.text_input(f"Buscar por {id_col} ou {title_col}", placeholder=f"Ex: {id_col}...")
         if search:
             df_filtered = df_filtered[
@@ -130,7 +133,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     fat_cols = [c for c in df_filtered.columns if c.startswith('Fat. Sem')]
     fat_cols.sort(reverse=True)
 
-    # Garantir que colunas de totais existem para evitar KeyError
+    # Garantir que colunas de totais existem
     if 'Qtd Total' not in df_filtered.columns:
         df_filtered['Qtd Total'] = df_filtered[volume_cols].sum(axis=1) if volume_cols else 0
     if 'Fat Total' not in df_filtered.columns:
@@ -196,6 +199,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             data=to_xlsx_bytes(df_filtered[cols_to_show]),
             file_name="warning_volume.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="dl_volume",
             use_container_width=True
         )
 
@@ -217,6 +221,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             data=to_xlsx_bytes(df_filtered[cols_to_show]),
             file_name="warning_faturamento.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="dl_fat",
             use_container_width=True
         )
 
@@ -232,5 +237,6 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             data=to_xlsx_bytes(df_filtered[[id_col, title_col, 'Curva Anterior', 'Curva Atual', 'Status Warning']]),
             file_name="warning_abc.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="dl_abc",
             use_container_width=True
         )
