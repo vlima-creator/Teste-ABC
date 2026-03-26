@@ -43,19 +43,19 @@ class WeeklyAnalyzer:
         if df.empty:
             return df
         
-        # Data de referência
+        # Data de referência (sempre o final do dia atual para garantir que hoje caia na Sem1)
         if base_date is None:
-            base_date = df['data_processada'].max()
+            base_date = df['data_processada'].max().replace(hour=23, minute=59, second=59)
         
         df['dias'] = (base_date - df['data_processada']).dt.days
         
         def weekly_bucket(dias):
             if dias < 0: return None
-            if dias <= 7: return 'Sem1'
-            elif dias <= 14: return 'Sem2'
-            elif dias <= 21: return 'Sem3'
-            elif dias <= 28: return 'Sem4'
-            elif dias <= 35: return 'Sem5'
+            if dias <= 6: return 'Sem1'      # 0-6 dias (7 dias)
+            elif dias <= 13: return 'Sem2'   # 7-13 dias (7 dias)
+            elif dias <= 20: return 'Sem3'   # 14-20 dias (7 dias)
+            elif dias <= 27: return 'Sem4'   # 21-27 dias (7 dias)
+            elif dias <= 34: return 'Sem5'   # 28-34 dias (7 dias)
             else: return None
         
         df['semana'] = df['dias'].apply(weekly_bucket)
@@ -190,7 +190,7 @@ class WeeklyAnalyzer:
             axis=1
         ).fillna(0)
 
-        # Delta de Volume (Quantidade) - NOVO
+        # Delta de Volume (Quantidade)
         qtd_sem1 = result.get('Qntd Sem1', 0)
         qtd_sem2 = result.get('Qntd Sem2', 0)
         result['Delta Qtd'] = qtd_sem1 - qtd_sem2
