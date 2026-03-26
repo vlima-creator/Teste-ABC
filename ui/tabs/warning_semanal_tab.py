@@ -125,13 +125,13 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         st.info("Nenhum produto encontrado com os filtros selecionados.")
         return
 
-    # Identificar colunas de volume (Qntd SemX)
+    # Identificar colunas de volume (Qntd SemX) e ordenar de Sem1 a Sem5
     volume_cols = [c for c in df_filtered.columns if c.startswith('Qntd Sem')]
-    volume_cols.sort(reverse=True) # Sem1, Sem2...
+    volume_cols.sort() # Sem1, Sem2, Sem3, Sem4, Sem5
     
-    # Identificar colunas de faturamento (Fat. SemX)
+    # Identificar colunas de faturamento (Fat. SemX) e ordenar de Sem1 a Sem5
     fat_cols = [c for c in df_filtered.columns if c.startswith('Fat. Sem')]
-    fat_cols.sort(reverse=True)
+    fat_cols.sort() # Fat. Sem1, Fat. Sem2...
 
     # Garantir que colunas de totais existem
     if 'Qtd Total' not in df_filtered.columns:
@@ -156,6 +156,8 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             if not top_5.empty and volume_cols:
                 plot_data = []
                 for _, row in top_5.iterrows():
+                    # Para o gráfico, a ordem cronológica correta é da mais antiga para a mais recente (Sem5 -> Sem1)
+                    # para que a linha siga o tempo da esquerda para a direita.
                     for sem in reversed(volume_cols):
                         plot_data.append({
                             'Produto': row[id_col],
@@ -182,6 +184,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         
         # Tabela de volume
         st.markdown("**Detalhamento de Volume por Semana:**")
+        # Na tabela, mostramos de Sem1 (mais recente) para Sem5 (mais antiga)
         cols_to_show = [id_col, title_col] + volume_cols + ['Qtd Total']
         volume_display = df_filtered[cols_to_show].copy()
         volume_display = volume_display.sort_values('Qtd Total', ascending=False)
