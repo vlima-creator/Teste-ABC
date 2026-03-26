@@ -156,9 +156,8 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             if not top_5.empty and volume_cols:
                 plot_data = []
                 for _, row in top_5.iterrows():
-                    # Para o gráfico, a ordem cronológica correta é da mais antiga para a mais recente (Sem5 -> Sem1)
-                    # para que a linha siga o tempo da esquerda para a direita.
-                    for sem in reversed(volume_cols):
+                    # Invertendo para que a Semana 1 apareça primeiro (à esquerda)
+                    for sem in volume_cols:
                         plot_data.append({
                             'Produto': row[id_col],
                             'Semana': sem.replace('Qntd ', ''),
