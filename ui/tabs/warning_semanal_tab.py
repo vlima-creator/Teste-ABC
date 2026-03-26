@@ -106,11 +106,15 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             
     with col3:
         st.markdown("**Pesquisar Produto:**")
-        search = st.text_input("Buscar por MLB ou Título", placeholder="Ex: MLB123...")
+        # Identificar colunas de ID e Título dinamicamente para a busca
+        id_col = next((c for c in df_filtered.columns if c.upper() in ['MLB', 'SKU', 'ASIN', 'ID']), df_filtered.columns[0])
+        title_col = next((c for c in df_filtered.columns if c.lower() in ['título', 'titulo', 'product name', 'nome do produto', 'item name']), df_filtered.columns[1])
+        
+        search = st.text_input(f"Buscar por {id_col} ou {title_col}", placeholder=f"Ex: {id_col}...")
         if search:
             df_filtered = df_filtered[
-                df_filtered['MLB'].str.contains(search, case=False, na=False) | 
-                df_filtered['Título'].str.contains(search, case=False, na=False)
+                df_filtered[id_col].astype(str).str.contains(search, case=False, na=False) | 
+                df_filtered[title_col].astype(str).str.contains(search, case=False, na=False)
             ]
 
     # ===== CONTEÚDO PRINCIPAL =====
@@ -126,14 +130,11 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     fat_cols = [c for c in df_filtered.columns if c.startswith('Fat. Sem')]
     fat_cols.sort(reverse=True)
 
-    # Determinar colunas de ID e Título dinamicamente para evitar KeyError
-    id_col = 'MLB' if 'MLB' in df_filtered.columns else 'SKU' if 'SKU' in df_filtered.columns else 'ASIN' if 'ASIN' in df_filtered.columns else None
-    title_col = 'Título' if 'Título' in df_filtered.columns else 'Product Name' if 'Product Name' in df_filtered.columns else 'Nome do Produto' if 'Nome do Produto' in df_filtered.columns else None
-
-    if not id_col or not title_col:
-        # Fallback para as primeiras colunas se não encontrar os nomes esperados
-        id_col = df_filtered.columns[0]
-        title_col = df_filtered.columns[1]
+    # Garantir que colunas de totais existem para evitar KeyError
+    if 'Qtd Total' not in df_filtered.columns:
+        df_filtered['Qtd Total'] = df_filtered[volume_cols].sum(axis=1) if volume_cols else 0
+    if 'Fat Total' not in df_filtered.columns:
+        df_filtered['Fat Total'] = df_filtered[fat_cols].sum(axis=1) if fat_cols else 0
 
     if view_mode == "📊 Volume":
         col_v1, col_v2 = st.columns([1, 1])
@@ -144,12 +145,12 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
                 st.markdown("📉 **Maiores Quedas de Volume (Sem1 vs Sem2):**")
                 top_drops = df_filtered.sort_values('Delta %').head(10)
                 for _, row in top_drops.iterrows():
-                    st.caption(f"{row[id_col]} - {row[title_col][:40]}... ({row['Delta %']:.1f}%)")
+                    st.caption(f"{row[id_col]} - {str(row[title_col])[:40]}... ({row['Delta %']:.1f}%)")
         
         with col_v2:
             # Gráfico de evolução do Top 5
             top_5 = df_filtered.sort_values('Qtd Total', ascending=False).head(5)
-            if not top_5.empty:
+            if not top_5.empty and volume_cols:
                 plot_data = []
                 for _, row in top_5.iterrows():
                     for sem in reversed(volume_cols):
@@ -178,7 +179,8 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         
         # Tabela de volume
         st.markdown("**Detalhamento de Volume por Semana:**")
-        volume_display = df_filtered[[id_col, title_col] + volume_cols + ['Qtd Total']].copy()
+        cols_to_show = [id_col, title_col] + volume_cols + ['Qtd Total']
+        volume_display = df_filtered[cols_to_show].copy()
         volume_display = volume_display.sort_values('Qtd Total', ascending=False)
         
         # Formatar números
@@ -191,7 +193,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         # Download
         st.download_button(
             "📥 Baixar Volume (Excel)",
-            data=to_xlsx_bytes(df_filtered[[id_col, title_col] + volume_cols + ['Qtd Total']]),
+            data=to_xlsx_bytes(df_filtered[cols_to_show]),
             file_name="warning_volume.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
@@ -200,7 +202,8 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     elif view_mode == "💰 Faturamento":
         # Similar ao volume, mas para faturamento
         st.markdown("**Detalhamento de Faturamento por Semana:**")
-        fat_display = df_filtered[[id_col, title_col] + fat_cols + ['Fat Total']].copy()
+        cols_to_show = [id_col, title_col] + fat_cols + ['Fat Total']
+        fat_display = df_filtered[cols_to_show].copy()
         fat_display = fat_display.sort_values('Fat Total', ascending=False)
         
         for col in fat_cols + ['Fat Total']:
@@ -211,7 +214,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         
         st.download_button(
             "📥 Baixar Faturamento (Excel)",
-            data=to_xlsx_bytes(df_filtered[[id_col, title_col] + fat_cols + ['Fat Total']]),
+            data=to_xlsx_bytes(df_filtered[cols_to_show]),
             file_name="warning_faturamento.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
@@ -221,12 +224,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         # Mostrar mudança de curva
         st.markdown("**Mudança de Curva ABC (Semana Atual vs Anterior):**")
         
-        abc_cols = [c for c in df_filtered.columns if c.startswith('Curva Sem')]
-        abc_cols.sort(reverse=True)
-        
         abc_display = df_filtered[[id_col, title_col, 'Curva Anterior', 'Curva Atual', 'Status Warning']].copy()
-        
-        # Colorir células de status seria ideal, mas no dataframe simples:
         st.dataframe(abc_display, use_container_width=True, hide_index=True, height=500)
         
         st.download_button(
