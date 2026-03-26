@@ -55,6 +55,7 @@ class AmazonProcessor(BaseProcessor):
             raise ValueError("Nenhum arquivo fornecido")
             
         all_dfs = []
+        raw_data_list = []  # Para acumular dados brutos com datas
         
         for file in files:
             file.seek(0)
@@ -87,6 +88,11 @@ class AmazonProcessor(BaseProcessor):
                 df_processed = self._process_single_df(df_file)
                 if not df_processed.empty:
                     all_dfs.append(df_processed)
+                    
+                    # Tentar extrair dados brutos com data se disponível
+                    df_raw_file = self._extract_raw_data_with_dates(df_file)
+                    if not df_raw_file.empty:
+                        raw_data_list.append(df_raw_file)
         
         if not all_dfs:
             # Se nenhum arquivo foi processado com sucesso, tenta dar um erro informativo baseado no primeiro arquivo
@@ -167,10 +173,102 @@ class AmazonProcessor(BaseProcessor):
             
         df_final = df_final.drop(columns=['curva_abc'], errors='ignore')
         
-        # Tenta usar df_final como df_raw se houver coluna de data
-        df_raw = df_final.copy() if 'data' in df_final.columns else pd.DataFrame()
+        # Preparar dados brutos com datas
+        if raw_data_list:
+            df_raw = pd.concat(raw_data_list, ignore_index=True)
+        else:
+            df_raw = pd.DataFrame()
         
         return df_final, pd.DataFrame(), pd.DataFrame(), df_raw
+
+    def _extract_raw_data_with_dates(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Extrai dados brutos com datas de um relatório da Amazon.
+        Procura por colunas de data, SKU, quantidade e faturamento.
+        """
+        try:
+            # Procurar por coluna de data
+            date_patterns = ['date', 'data', 'data do pedido', 'order date', 'order-date', 'purchase date']
+            date_col = next((c for c in df.columns if any(p in c.lower() for p in date_patterns)), None)
+            
+            if date_col is None:
+                return pd.DataFrame()
+            
+            # Procurar por colunas de ID, quantidade e faturamento
+            id_patterns = ['asin', 'sku', 'seller-sku', 'item-id']
+            id_col = next((c for c in df.columns if any(p in c.lower() for p in id_patterns)), None)
+            
+            title_patterns = ['product-name', 'title', 'product-title', 'nome do produto']
+            title_col = next((c for c in df.columns if any(p in c.lower() for p in title_patterns)), None)
+            
+            qty_patterns = ['units-ordered', 'unidades pedidas', 'quantity', 'quantidade']
+            qty_col = next((c for c in df.columns if any(p in c.lower() for p in qty_patterns)), None)
+            
+            fat_patterns = ['ordered-product-sales', 'vendas de produtos pedidos', 'revenue', 'faturamento', 'sales']
+            fat_col = next((c for c in df.columns if any(p in c.lower() for p in fat_patterns)), None)
+            
+            if id_col is None or qty_col is None or fat_col is None:
+                return pd.DataFrame()
+            
+            # Criar DataFrame bruto
+            df_raw = pd.DataFrame()
+            df_raw['mlb'] = df[id_col].astype(str)
+            
+            if title_col:
+                df_raw['titulo'] = df[title_col].astype(str)
+            else:
+                df_raw['titulo'] = df_raw['mlb']
+            
+            # Converter quantidade
+            def clean_int(v):
+                if pd.isna(v): return 0
+                try:
+                    s = str(v).split('.')[0].split(',')[0]
+                    cleaned = re.sub(r'[^0-9]', '', s)
+                    return int(cleaned) if cleaned else 0
+                except:
+                    return 0
+            
+            df_raw['unidades'] = df[qty_col].apply(clean_int)
+            
+            # Converter faturamento
+            def clean_money(v):
+                if pd.isna(v): return 0.0
+                s = str(v).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
+                if not s: return 0.0
+                
+                if ',' in s and '.' in s:
+                    if s.find('.') < s.find(','): # 1.234,56
+                        s = s.replace('.', '').replace(',', '.')
+                    else: # 1,234.56
+                        s = s.replace(',', '')
+                elif ',' in s:
+                    parts = s.split(',')
+                    if len(parts) == 2 and len(parts[1]) <= 2:
+                        s = s.replace(',', '.')
+                    else:
+                        s = s.replace(',', '')
+                
+                try:
+                    cleaned = re.sub(r'[^0-9.]', '', s)
+                    return float(cleaned) if cleaned else 0.0
+                except:
+                    return 0.0
+            
+            df_raw['receita'] = df[fat_col].apply(clean_money)
+            
+            # Converter data
+            df_raw['data'] = pd.to_datetime(df[date_col], errors='coerce', dayfirst=True)
+            df_raw = df_raw.dropna(subset=['data'])
+            
+            # Manter apenas colunas necessárias
+            df_raw = df_raw[['mlb', 'titulo', 'unidades', 'receita', 'data']].copy()
+            
+            return df_raw
+            
+        except Exception as e:
+            print(f"Erro ao extrair dados brutos com datas: {e}")
+            return pd.DataFrame()
 
     def _process_single_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """Processa um único DataFrame da Amazon."""
@@ -263,12 +361,6 @@ class AmazonProcessor(BaseProcessor):
             df_export['Fat total'] = df[fat_col].apply(clean_money)
         else:
             df_export['Fat total'] = 0.0
-            
-        # 5. Data (Opcional para análise semanal)
-        date_patterns = ['date', 'data', 'data do pedido', 'order date', 'data da venda']
-        date_col = next((c for c in df.columns if any(p in c.lower() for p in date_patterns)), None)
-        if date_col:
-            df_export['data'] = pd.to_datetime(df[date_col], errors='coerce')
 
         # 5. Buy Box % (Oferta em Destaque)
         buybox_patterns = ['porcentagem de ofertas em destaque', 'buy box percentage', 'buy box %', 'featured offer percentage', 'oferta em destaque']
@@ -277,52 +369,32 @@ class AmazonProcessor(BaseProcessor):
             df_export['Buy Box %'] = df[buybox_col].apply(clean_pct)
         else:
             df_export['Buy Box %'] = 0.0
-
-        # 6. Sessões (Sessions)
-        sessions_patterns = ['sessions', 'sessões', 'sessoes', 'visitantes']
+        
+        # 6. Sessões (para análise de conversão)
+        sessions_patterns = ['sessions', 'sessões', 'session', 'visitas']
         sessions_col = next((c for c in df.columns if any(p in c.lower() for p in sessions_patterns)), None)
         if sessions_col:
             df_export['_amazon_sessions'] = df[sessions_col].apply(clean_int)
         
-        # 7. Visualizações de Página (Page Views)
-        pv_patterns = ['page views', 'visualizações de página', 'visualizacoes', 'page-views']
-        pv_col = next((c for c in df.columns if any(p in c.lower() for p in pv_patterns)), None)
-        if pv_col:
-            df_export['_amazon_page_views'] = df[pv_col].apply(clean_int)
-            
-        # 8. Taxa de Conversão (Unit Session Percentage)
-        conv_patterns = ['unit session percentage', 'taxa de conversão', 'conversão', 'conversion', 'order-item-session-percentage']
+        # 7. Page Views
+        pageviews_patterns = ['page views', 'pageviews', 'visualizações', 'visualizacoes', 'page-views']
+        pageviews_col = next((c for c in df.columns if any(p in c.lower() for p in pageviews_patterns)), None)
+        if pageviews_col:
+            df_export['_amazon_page_views'] = df[pageviews_col].apply(clean_int)
+        
+        # 8. Taxa de Conversão
+        conv_patterns = ['order-item-session-percentage', 'taxa de conversão', 'conversion rate', 'conversion-rate']
         conv_col = next((c for c in df.columns if any(p in c.lower() for p in conv_patterns)), None)
         if conv_col:
             df_export['_amazon_conv_rate'] = df[conv_col].apply(clean_pct)
-
-        # BUSCA AGRESSIVA por conteúdo se as colunas nomeadas falharem
-        if df_export['Fat total'].sum() == 0 or df_export['Qtd total'].sum() == 0:
-            for c in df.columns:
-                # Pula colunas que já sabemos serem de texto
-                if c in [mlb_col, title_col]: continue
-                
-                sample = df[c].dropna().head(20).astype(str)
-                if sample.empty: continue
-                
-                # Testa se parece faturamento (tem símbolo de moeda ou decimais)
-                sample_str = "".join(sample)
-                if any(curr in sample_str for curr in ['R$', '$', ',']) or ('.' in sample_str and not all(x.isdigit() for x in sample)):
-                    vals = df[c].apply(clean_money)
-                    if vals.sum() > df_export['Fat total'].sum():
-                        df_export['Fat total'] = vals
-                
-                # Testa se parece quantidade (apenas números inteiros)
-                if all(re.match(r'^\d+$', str(x).split('.')[0]) for x in sample if str(x).strip()):
-                    vals_int = df[c].apply(clean_int)
-                    # Se a coluna de faturamento ainda estiver vazia e essa tiver valores altos, 
-                    # pode ser faturamento sem formatação. Se forem valores baixos, é quantidade.
-                    if vals_int.mean() > 100 and df_export['Fat total'].sum() == 0:
-                        df_export['Fat total'] = vals_int.astype(float)
-                    elif vals_int.sum() > df_export['Qtd total'].sum():
-                        df_export['Qtd total'] = vals_int
-
-        # Filtro para remover linhas sem identificador
-        df_export = df_export[df_export['MLB'] != 'nan'].copy()
+        elif sessions_col and qty_col:
+            # Calcular taxa de conversão se temos sessões e quantidade
+            df_export['_amazon_conv_rate'] = df_export.apply(
+                lambda x: (x['Qtd total'] / x['_amazon_sessions'] * 100) if x.get('_amazon_sessions', 0) > 0 else 0.0,
+                axis=1
+            ).fillna(0.0)
+        
+        # Filtro para garantir que temos dados
+        df_export = df_export[(df_export['Fat total'] > 0) | (df_export['Qtd total'] > 0) | (df_export['Buy Box %'] > 0)].copy()
         
         return df_export

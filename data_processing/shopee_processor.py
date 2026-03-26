@@ -97,8 +97,10 @@ class ShopeeProcessor(BaseProcessor):
         df_logistics = pd.DataFrame()
         df_ads = pd.DataFrame()
         
-        # Tenta usar df_export como df_raw se houver coluna de data
-        df_raw = df_export.copy() if 'data' in df_export.columns else pd.DataFrame()
+        # Extrai dados brutos com datas do sales_overview para análise semanal precisa
+        df_raw = pd.DataFrame()
+        if df_sales is not None and not df_sales.empty:
+            df_raw = self._prepare_raw_data_from_sales(df_sales, df_export)
         
         return df_export, df_logistics, df_ads, df_raw
     
@@ -300,3 +302,100 @@ class ShopeeProcessor(BaseProcessor):
         except Exception as e:
             print(f"Erro ao extrair dados PC/App: {e}")
             return None
+    
+    def _prepare_raw_data_from_sales(self, df_sales: pd.DataFrame, df_export: pd.DataFrame) -> pd.DataFrame:
+        """
+        Prepara dados brutos com datas a partir do sales_overview.
+        Cria um DataFrame com colunas: mlb, titulo, unidades, receita, data
+        """
+        try:
+            if df_sales.empty:
+                return pd.DataFrame()
+            
+            # Copiar dados de vendas
+            df_raw = df_sales.copy()
+            
+            # Converter coluna de data
+            if 'Data' in df_raw.columns:
+                df_raw['data'] = pd.to_datetime(df_raw['Data'], errors='coerce', dayfirst=True)
+                df_raw = df_raw.dropna(subset=['data'])
+            else:
+                return pd.DataFrame()
+            
+            # Mapear colunas de quantidade e faturamento
+            qty_col = None
+            fat_col = None
+            
+            # Procurar por colunas de quantidade (Pedidos Pagos)
+            for col in df_raw.columns:
+                col_lower = str(col).lower()
+                if 'unidades' in col_lower and 'pedidos pagos' in col_lower:
+                    qty_col = col
+                    break
+            
+            # Procurar por colunas de faturamento (Pedidos Pagos)
+            for col in df_raw.columns:
+                col_lower = str(col).lower()
+                if 'vendas' in col_lower and 'pedidos pagos' in col_lower and 'brl' in col_lower:
+                    fat_col = col
+                    break
+            
+            if qty_col is None or fat_col is None:
+                return pd.DataFrame()
+            
+            # Preparar dados brutos
+            df_raw['unidades'] = pd.to_numeric(df_raw[qty_col], errors='coerce').fillna(0).astype(int)
+            
+            # Converter faturamento (formato: "1.234,56")
+            def parse_brl(value):
+                if pd.isna(value):
+                    return 0.0
+                if isinstance(value, (int, float)):
+                    return float(value)
+                
+                s = str(value).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
+                if not s: return 0.0
+                
+                if ',' in s and '.' in s:
+                    if s.find('.') < s.find(','): # 1.234,56
+                        s = s.replace('.', '').replace(',', '.')
+                    else: # 1,234.56
+                        s = s.replace(',', '')
+                elif ',' in s:
+                    parts = s.split(',')
+                    if len(parts) == 2 and len(parts[1]) <= 2:
+                        s = s.replace(',', '.')
+                    else:
+                        s = s.replace(',', '')
+                
+                try:
+                    import re
+                    cleaned = re.sub(r'[^0-9.]', '', s)
+                    return float(cleaned) if cleaned else 0.0
+                except:
+                    return 0.0
+            
+            df_raw['receita'] = df_raw[fat_col].apply(parse_brl)
+            
+            # Adicionar informações de produtos (SKU e Título)
+            # Como sales_overview não tem SKU individual, vamos replicar para cada produto
+            # Isso permite que o WeeklyAnalyzer agregue corretamente
+            if not df_export.empty:
+                # Expandir dados de vendas para cada produto
+                df_raw_expanded = []
+                for _, row in df_export.iterrows():
+                    df_temp = df_raw.copy()
+                    df_temp['mlb'] = row['MLB']
+                    df_temp['titulo'] = row['Título']
+                    df_raw_expanded.append(df_temp)
+                
+                df_raw = pd.concat(df_raw_expanded, ignore_index=True)
+            
+            # Manter apenas colunas necessárias
+            df_raw = df_raw[['mlb', 'titulo', 'unidades', 'receita', 'data']].copy()
+            
+            return df_raw
+            
+        except Exception as e:
+            print(f"Erro ao preparar dados brutos do sales_overview: {e}")
+            return pd.DataFrame()
