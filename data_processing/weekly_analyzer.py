@@ -45,7 +45,17 @@ class WeeklyAnalyzer:
         
         # Data de referência (sempre o final do dia atual para garantir que hoje caia na Sem1)
         if base_date is None:
-            base_date = df['data_processada'].max().replace(hour=23, minute=59, second=59)
+            # Se a data máxima for muito antiga (ex: relatório de 30 dias atrás), 
+            # usamos a data atual para que os buckets façam sentido em relação ao "hoje"
+            max_data = df['data_processada'].max()
+            hoje = datetime.now()
+            
+            # Se a data máxima do arquivo for nos últimos 7 dias, usamos ela. 
+            # Caso contrário, usamos hoje para garantir que o relatório de 30 dias cubra as 5 semanas.
+            if (hoje - max_data).days <= 7:
+                base_date = max_data.replace(hour=23, minute=59, second=59)
+            else:
+                base_date = hoje.replace(hour=23, minute=59, second=59)
         
         df['dias'] = (base_date - df['data_processada']).dt.days
         
