@@ -217,17 +217,41 @@ class ShopeeProcessor(BaseProcessor):
     def _process_sales_overview(self, file) -> Optional[pd.DataFrame]:
         """
         Processa o arquivo de visão geral de vendas (sales_overview).
+        Localiza dinamicamente o início dos dados diários.
         """
         try:
             file.seek(0)
-            df = pd.read_excel(file, sheet_name=0)
+            # Lê o arquivo sem header definido para localizar o cabeçalho real
+            df_raw = pd.read_excel(file, sheet_name=0, header=None)
             
-            # Remove linhas vazias
-            df = df.dropna(how='all')
+            # Localiza a linha que contém o cabeçalho real (Data, Visitantes, etc.)
+            # Procuramos pela linha que tem 'Data' e 'Unidades' ou 'Vendas'
+            header_row_idx = -1
+            for i, row in df_raw.iterrows():
+                row_str = [str(val).lower() for val in row.values]
+                if 'data' in row_str and any('unidades' in s or 'vendas' in s for s in row_str):
+                    # Verificamos se não é a linha de resumo (que geralmente tem um intervalo de datas)
+                    # A linha de cabeçalho real costuma ser a segunda ocorrência de 'Data' ou estar após a linha 2
+                    if i >= 3: 
+                        header_row_idx = i
+                        break
             
-            # Pula a primeira linha (resumo) e pega dados diários
-            df_daily = df[df['Data'].notna()].copy()
-            df_daily = df_daily[df_daily['Data'] != 'Data']  # Remove header duplicado
+            if header_row_idx == -1:
+                # Fallback: tenta a lógica antiga se não achar o cabeçalho dinamicamente
+                file.seek(0)
+                df = pd.read_excel(file, sheet_name=0)
+                df_daily = df[df['Data'].astype(str).str.contains(r'\d{2}/\d{2}/\d{4}', na=False)].copy()
+                return df_daily
+
+            # Define o DataFrame com o cabeçalho correto
+            df_daily = df_raw.iloc[header_row_idx+1:].copy()
+            df_daily.columns = df_raw.iloc[header_row_idx].values
+            
+            # Limpa nomes de colunas (remove espaços e quebras de linha)
+            df_daily.columns = [str(c).strip().replace('\n', ' ') for c in df_daily.columns]
+            
+            # Filtra apenas linhas que tenham data no formato DD/MM/YYYY
+            df_daily = df_daily[df_daily['Data'].astype(str).str.contains(r'\d{2}/\d{2}/\d{4}', na=False)].copy()
             
             return df_daily
             
