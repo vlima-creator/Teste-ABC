@@ -45,27 +45,20 @@ class WeeklyAnalyzer:
         
         # Data de referência (sempre o final do dia atual para garantir que hoje caia na Sem1)
         if base_date is None:
-            # Se a data máxima for muito antiga (ex: relatório de 30 dias atrás), 
-            # usamos a data atual para que os buckets façam sentido em relação ao "hoje"
-            max_data = df['data_processada'].max()
-            hoje = datetime.now()
-            
-            # Se a data máxima do arquivo for nos últimos 7 dias, usamos ela. 
-            # Caso contrário, usamos hoje para garantir que o relatório de 30 dias cubra as 5 semanas.
-            if (hoje - max_data).days <= 7:
-                base_date = max_data.replace(hour=23, minute=59, second=59)
-            else:
-                base_date = hoje.replace(hour=23, minute=59, second=59)
+            # Para Amazon e Shopee, usamos a data máxima do arquivo como referência
+            # Isso garante que a última semana do relatório seja sempre a "Semana 1"
+            base_date = df['data_processada'].max().replace(hour=23, minute=59, second=59)
         
         df['dias'] = (base_date - df['data_processada']).dt.days
         
         def weekly_bucket(dias):
-            if dias < 0: return None
-            if dias <= 6: return 'Sem1'      # 0-6 dias (7 dias)
-            elif dias <= 13: return 'Sem2'   # 7-13 dias (7 dias)
-            elif dias <= 20: return 'Sem3'   # 14-20 dias (7 dias)
-            elif dias <= 27: return 'Sem4'   # 21-27 dias (7 dias)
-            elif dias <= 34: return 'Sem5'   # 28-34 dias (7 dias)
+            # Invertemos a lógica para garantir que os dias mais recentes (menor delta) sejam Sem1
+            if dias < 0: return 'Sem1' # Caso a data seja futura por fuso horário
+            if dias <= 6: return 'Sem1'      # Últimos 7 dias
+            elif dias <= 13: return 'Sem2'   # 8-14 dias atrás
+            elif dias <= 20: return 'Sem3'   # 15-21 dias atrás
+            elif dias <= 27: return 'Sem4'   # 22-28 dias atrás
+            elif dias <= 34: return 'Sem5'   # 29-35 dias atrás
             else: return None
         
         df['semana'] = df['dias'].apply(weekly_bucket)
