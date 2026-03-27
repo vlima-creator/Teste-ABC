@@ -92,6 +92,8 @@ class AmazonProcessor(BaseProcessor):
                     # Tentar extrair dados brutos com data se disponível
                     df_raw_file = self._extract_raw_data_with_dates(df_file)
                     if not df_raw_file.empty:
+                        # Se o df_raw_file não tiver SKU individual (resumo de conta), 
+                        # vamos marcar para processar depois com df_final
                         raw_data_list.append(df_raw_file)
         
         if not all_dfs:
@@ -174,10 +176,46 @@ class AmazonProcessor(BaseProcessor):
         df_final = df_final.drop(columns=['curva_abc'], errors='ignore')
         
         # Preparar dados brutos com datas
+        df_raw = pd.DataFrame()
         if raw_data_list:
-            df_raw = pd.concat(raw_data_list, ignore_index=True)
-        else:
-            df_raw = pd.DataFrame()
+            df_raw_combined = pd.concat(raw_data_list, ignore_index=True)
+            
+            # Se o df_raw_combined não tiver SKUs que batem com df_final, 
+            # ou se for um resumo de conta (poucas linhas com datas), distribuímos proporcionalmente
+            if not df_raw_combined.empty and not df_final.empty:
+                # Verificar se os IDs no df_raw batem com os SKUs reais
+                raw_ids = set(df_raw_combined['mlb'].unique())
+                final_ids = set(df_final['MLB'].unique())
+                
+                # Se menos de 10% dos IDs batem, provavelmente é um resumo de conta
+                match_rate = len(raw_ids.intersection(final_ids)) / len(final_ids) if final_ids else 0
+                
+                if match_rate < 0.1:
+                    # Distribuição Proporcional
+                    total_fat_30d = df_final['Fat total'].sum()
+                    total_qtd_30d = df_final['Qtd total'].sum()
+                    
+                    # Agrupar vendas brutas por data (caso haja múltiplos arquivos)
+                    df_daily_totals = df_raw_combined.groupby('data').agg({
+                        'unidades': 'sum',
+                        'receita': 'sum'
+                    }).reset_index()
+                    
+                    expanded_rows = []
+                    for _, row in df_final.iterrows():
+                        prop_fat = row['Fat total'] / total_fat_30d if total_fat_30d > 0 else (1.0 / len(df_final))
+                        prop_qtd = row['Qtd total'] / total_qtd_30d if total_qtd_30d > 0 else (1.0 / len(df_final))
+                        
+                        df_temp = df_daily_totals.copy()
+                        df_temp['mlb'] = row['MLB']
+                        df_temp['titulo'] = row['Título']
+                        df_temp['receita'] = df_temp['receita'] * prop_fat
+                        df_temp['unidades'] = (df_temp['unidades'] * prop_qtd).round().astype(int)
+                        expanded_rows.append(df_temp)
+                    
+                    df_raw = pd.concat(expanded_rows, ignore_index=True)
+                else:
+                    df_raw = df_raw_combined
         
         return df_final, pd.DataFrame(), pd.DataFrame(), df_raw
 

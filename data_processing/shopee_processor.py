@@ -377,16 +377,26 @@ class ShopeeProcessor(BaseProcessor):
             
             df_raw['receita'] = df_raw[fat_col].apply(parse_brl)
             
-            # Adicionar informações de produtos (SKU e Título)
-            # Como sales_overview não tem SKU individual, vamos replicar para cada produto
-            # Isso permite que o WeeklyAnalyzer agregue corretamente
+            # Adicionar informações de produtos (SKU e Título) com distribuição proporcional
             if not df_export.empty:
-                # Expandir dados de vendas para cada produto
+                # Calcular participação de cada produto no faturamento total de 30 dias
+                total_fat_30d = df_export['Fat total'].sum()
+                total_qtd_30d = df_export['Qtd total'].sum()
+                
                 df_raw_expanded = []
                 for _, row in df_export.iterrows():
+                    # Proporção do produto (evita divisão por zero)
+                    prop_fat = row['Fat total'] / total_fat_30d if total_fat_30d > 0 else (1.0 / len(df_export))
+                    prop_qtd = row['Qtd total'] / total_qtd_30d if total_qtd_30d > 0 else (1.0 / len(df_export))
+                    
                     df_temp = df_raw.copy()
                     df_temp['mlb'] = row['MLB']
                     df_temp['titulo'] = row['Título']
+                    
+                    # Distribui faturamento e unidades proporcionalmente
+                    df_temp['receita'] = df_temp['receita'] * prop_fat
+                    df_temp['unidades'] = (df_temp['unidades'] * prop_qtd).round().astype(int)
+                    
                     df_raw_expanded.append(df_temp)
                 
                 df_raw = pd.concat(df_raw_expanded, ignore_index=True)
