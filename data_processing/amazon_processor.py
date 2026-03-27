@@ -213,6 +213,7 @@ class AmazonProcessor(BaseProcessor):
         """
         Extrai dados brutos com datas de um relatório da Amazon.
         Procura por colunas de data, SKU, quantidade e faturamento.
+        Suporta formatos de data ISO (YYYY-MM-DDTHH:MM:SS) e DD/MM/YYYY.
         """
         try:
             # Procurar por coluna de data
@@ -220,11 +221,15 @@ class AmazonProcessor(BaseProcessor):
             date_col = next((c for c in df.columns if any(p in c.lower() for p in date_patterns)), None)
             
             if date_col is None:
-                # Tenta procurar por valores que pareçam datas na primeira coluna
-                if not df.empty:
-                    first_val = str(df.iloc[0, 0])
-                    if re.search(r'\d{1,2}/\d{1,2}/\d{2,4}', first_val) or re.search(r'\d{4}-\d{1,2}-\d{1,2}', first_val):
-                        date_col = df.columns[0]
+                # Tenta procurar por valores que pareçam datas em qualquer coluna
+                for col in df.columns:
+                    if not df.empty:
+                        # Verifica se a coluna tem valores que parecem datas (ISO ou DD/MM/YYYY)
+                        sample_vals = df[col].astype(str).head(10)
+                        date_matches = sample_vals[sample_vals.str.contains(r'\d{4}-\d{1,2}-\d{1,2}T|\d{1,2}/\d{1,2}/\d{2,4}', na=False)]
+                        if len(date_matches) > 0:
+                            date_col = col
+                            break
             
             if date_col is None:
                 return pd.DataFrame()
@@ -236,10 +241,10 @@ class AmazonProcessor(BaseProcessor):
             title_patterns = ['product-name', 'title', 'product-title', 'nome do produto']
             title_col = next((c for c in df.columns if any(p in c.lower() for p in title_patterns)), None)
             
-            qty_patterns = ['units-ordered', 'unidades pedidas', 'quantity', 'quantidade']
+            qty_patterns = ['units-ordered', 'unidades pedidas', 'quantity', 'quantidade', 'unidades']
             qty_col = next((c for c in df.columns if any(p in c.lower() for p in qty_patterns)), None)
             
-            fat_patterns = ['ordered-product-sales', 'vendas de produtos pedidos', 'revenue', 'faturamento', 'sales']
+            fat_patterns = ['ordered-product-sales', 'vendas de produtos pedidos', 'revenue', 'faturamento', 'sales', 'vendas']
             fat_col = next((c for c in df.columns if any(p in c.lower() for p in fat_patterns)), None)
             
             if id_col is None or qty_col is None or fat_col is None:
@@ -266,25 +271,33 @@ class AmazonProcessor(BaseProcessor):
             
             df_raw['unidades'] = df[qty_col].apply(clean_int)
             
-            # Converter faturamento
+            # Converter faturamento (suporta "R$ 0,00" e formatos diversos)
             def clean_money(v):
                 if pd.isna(v): return 0.0
                 s = str(v).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
-                if not s: return 0.0
+                if not s or s == '0,0' or s == '0.0': return 0.0
                 
+                # Remove espaços
+                s = s.replace(' ', '')
+                
+                # Lida com formato 1.234,56 (brasileiro) vs 1,234.56 (US)
                 if ',' in s and '.' in s:
-                    if s.find('.') < s.find(','): # 1.234,56
+                    if s.find('.') < s.find(','): # 1.234,56 (brasileiro)
                         s = s.replace('.', '').replace(',', '.')
-                    else: # 1,234.56
+                    else: # 1,234.56 (US)
                         s = s.replace(',', '')
                 elif ',' in s:
+                    # Se tem vírgula, verifica se é decimal ou milhar
                     parts = s.split(',')
                     if len(parts) == 2 and len(parts[1]) <= 2:
+                        # Provavelmente decimal (ex: 10,50)
                         s = s.replace(',', '.')
                     else:
+                        # Provavelmente milhar (ex: 1,000)
                         s = s.replace(',', '')
                 
                 try:
+                    # Remove qualquer caractere não-numérico exceto ponto
                     cleaned = re.sub(r'[^0-9.]', '', s)
                     return float(cleaned) if cleaned else 0.0
                 except:
@@ -292,8 +305,12 @@ class AmazonProcessor(BaseProcessor):
             
             df_raw['receita'] = df[fat_col].apply(clean_money)
             
-            # Converter data
-            df_raw['data'] = pd.to_datetime(df[date_col], errors='coerce', dayfirst=True)
+            # Converter data (suporta ISO YYYY-MM-DDTHH:MM:SS e DD/MM/YYYY)
+            df_raw['data'] = pd.to_datetime(df[date_col], errors='coerce')
+            # Se não funcionou, tenta com dayfirst=True
+            if df_raw['data'].isna().all():
+                df_raw['data'] = pd.to_datetime(df[date_col], errors='coerce', dayfirst=True)
+            
             df_raw = df_raw.dropna(subset=['data'])
             
             # Manter apenas colunas necessárias
