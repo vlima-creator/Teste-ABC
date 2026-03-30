@@ -178,12 +178,22 @@ class WeeklyAnalyzer:
     
     @staticmethod
     def calculate_warnings(df: pd.DataFrame) -> pd.DataFrame:
-        """Calcula alertas de mudança de curva."""
+        """Calcula alertas de mudança de curva.
+        
+        IMPORTANTE: Este método SEMPRE trabalha apenas com as últimas 5 semanas (Sem1 a Sem5).
+        Qualquer dado anterior é descartado.
+        """
         result = df.copy()
+        
+        # Garantir que apenas as 5 semanas mais recentes estão presentes
+        # Remover qualquer coluna que não seja das últimas 5 semanas
+        cols_to_keep = [col for col in result.columns if not (col.startswith('Qntd ') or col.startswith('Fat. ') or col.startswith('Curva ')) or col in ['Qntd Sem1', 'Qntd Sem2', 'Qntd Sem3', 'Qntd Sem4', 'Qntd Sem5', 'Fat. Sem1', 'Fat. Sem2', 'Fat. Sem3', 'Fat. Sem4', 'Fat. Sem5', 'Curva Sem1', 'Curva Sem2', 'Curva Sem3', 'Curva Sem4', 'Curva Sem5']]
+        result = result[cols_to_keep]
+        
         result['Curva Anterior'] = result.get('Curva Sem2', '-')
         result['Curva Atual'] = result.get('Curva Sem1', '-')
         
-        # Delta de Faturamento
+        # Delta de Faturamento (SEMPRE comparando Sem1 vs Sem2)
         fat_sem1 = result.get('Fat. Sem1', 0)
         fat_sem2 = result.get('Fat. Sem2', 0)
         result['Delta Fat'] = fat_sem1 - fat_sem2
@@ -193,7 +203,7 @@ class WeeklyAnalyzer:
             axis=1
         ).fillna(0)
 
-        # Delta de Volume (Quantidade)
+        # Delta de Volume (Quantidade) (SEMPRE comparando Sem1 vs Sem2)
         qtd_sem1 = result.get('Qntd Sem1', 0)
         qtd_sem2 = result.get('Qntd Sem2', 0)
         result['Delta Qtd'] = qtd_sem1 - qtd_sem2

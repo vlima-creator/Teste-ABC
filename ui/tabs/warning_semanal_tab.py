@@ -15,6 +15,9 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     """
     Renderiza a aba de Warning Semanal com análise de performance semanal.
     
+    IMPORTANTE: Esta aba SEMPRE mostra apenas as últimas 5 semanas de dados,
+    independentemente do período total do relatório carregado.
+    
     Args:
         df_export: DataFrame principal com dados de vendas
         df_raw: DataFrame bruto com colunas de data para cálculo semanal
@@ -43,12 +46,14 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         df_analysis = WeeklyAnalyzer.calculate_warnings(df_analysis)
     else:
         # Calcular análise semanal a partir dos dados brutos
+        # IMPORTANTE: WeeklyAnalyzer.calculate_weekly_curves() SEMPRE filtra para as últimas 5 semanas
         df_analysis = WeeklyAnalyzer.calculate_weekly_curves(df_raw)
         if df_analysis.empty:
             st.error("Não foi possível processar os dados semanais. Verifique se o arquivo contém colunas de Data, SKU/ID e Valores.")
             return
         
         # Adicionar cálculos de warning
+        # IMPORTANTE: calculate_warnings() garante que APENAS as últimas 5 semanas são usadas
         df_analysis = WeeklyAnalyzer.calculate_warnings(df_analysis)
     
     # ===== HEADER =====
