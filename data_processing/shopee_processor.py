@@ -59,19 +59,33 @@ class ShopeeProcessor(BaseProcessor):
         
         for file in files:
             file.seek(0)
+            filename = getattr(file, 'name', '').lower()
             try:
-                df_test = pd.read_excel(file, nrows=2)
+                # Tenta ler o arquivo para ver as colunas
+                df_test = pd.read_excel(file, nrows=5)
                 cols = [str(c).lower() for c in df_test.columns]
                 
-                if 'id do item' in cols or 'sku principle' in cols:
+                # 1. Identificação por Colunas (Prioridade)
+                if any(x in cols for x in ['id do item', 'sku principle', 'visitantes do produto (visita)', 'produto']):
                     product_file = file
-                elif 'compradores (pedidos feitos)' in cols:
+                elif any(x in cols for x in ['compradores (pedidos feitos)', 'unidades (pedidos feitos)']):
                     sales_file = file
-                elif 'visualizações da página' in cols and 'taxa de devolução' in cols:
+                elif any(x in cols for x in ['visualizações da página', 'taxa de devolução', 'visitantes (loja)']):
+                    traffic_file = file
+                
+                # 2. Identificação por Nome do Arquivo (Fallback se colunas falharem)
+                if not product_file and any(x in filename for x in ['product', 'parentskudetail', 'performance', 'produc']):
+                    product_file = file
+                elif not sales_file and any(x in filename for x in ['sales', 'vendas', 'overview']):
+                    sales_file = file
+                elif not traffic_file and any(x in filename for x in ['traffic', 'trafego', 'visitantes']):
                     traffic_file = file
                     
                 file.seek(0)
             except Exception:
+                # Se falhar ao ler Excel, tenta ver se o nome ajuda
+                if any(x in filename for x in ['product', 'parentskudetail', 'produc']):
+                    product_file = file
                 file.seek(0)
                 continue
         
