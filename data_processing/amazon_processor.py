@@ -39,8 +39,9 @@ class AmazonProcessor(BaseProcessor):
             content_lower = content.lower()
             matches = sum(1 for ind in amazon_indicators if ind.lower() in content_lower)
             
-            # Detecção mais agressiva baseada em nomes de arquivos comuns da Amazon
-            if matches >= 2 or any(x in filename for x in ["businessreport", "salesdashboard", "amazon", "pedidos", "sales"]):
+            # Detecção mais específica para Amazon
+            # Evitamos palavras genéricas como "sales" ou "pedidos" sozinhas para não confundir com Shopee
+            if matches >= 3 or any(x in filename for x in ["businessreport", "salesdashboard", "amazon"]):
                 return True
                 
             return False
