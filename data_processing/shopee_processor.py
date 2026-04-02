@@ -152,7 +152,7 @@ class ShopeeProcessor(BaseProcessor):
     
     def _process_product_performance(self, file) -> pd.DataFrame:
         """
-        Processa o arquivo de performance de produtos (parentskudetail).
+        Processa o arquivo de performance de produtos (parentskudetail ou productoverview).
         """
         file.seek(0)
         df = pd.read_excel(file, sheet_name=0)
@@ -160,106 +160,135 @@ class ShopeeProcessor(BaseProcessor):
         # Remove linhas vazias
         df = df.dropna(how='all')
         
-        # Filtra apenas produtos pai (linhas com dados agregados)
-        # Produtos pai têm valores em 'Visitantes do Produto (Visita)'
-        df_pai = df[df['Visitantes do Produto (Visita)'].notna()].copy()
+        # Identificar colunas dinamicamente para suportar diferentes formatos da Shopee
+        cols = df.columns.tolist()
         
-        if df_pai.empty:
-            raise ValueError("Nenhum produto pai encontrado no relatório da Shopee")
+        # Coluna de ID/SKU
+        id_col = next((c for c in cols if c in ['SKU Principle', 'ID do Item', 'SKU da Variação']), None)
+        # Coluna de Título
+        title_col = next((c for c in cols if c in ['Produto', 'Nome do Produto', 'Nome da Variação']), None)
+        # Coluna de Quantidade
+        qty_col = next((c for c in cols if c in ['Unidades (Pedido pago)', 'Unidades (Pedido realizado)', 'Unidades']), None)
+        # Coluna de Faturamento
+        fat_col = next((c for c in cols if c in ['Vendas (Pedido pago) (BRL)', 'Vendas (Pedido realizado) (BRL)', 'Vendas']), None)
         
-        # Mapeia colunas para o formato padronizado
-        df_export = pd.DataFrame()
-        
-        df_export['MLB'] = df_pai['SKU Principle'].astype(str).str.strip()
-        df_export['Título'] = df_pai['Produto'].astype(str).str.strip()
-        df_export['SKU'] = df_pai['SKU Principle'].astype(str).str.strip()
-        
-        # Métricas de vendas (Pedidos Pagos é o mais confiável)
-        df_export['Qtd total'] = pd.to_numeric(df_pai['Unidades (Pedido pago)'], errors='coerce').fillna(0).astype(int)
-        
-        # Converte valores monetários (formato: "1.234,56")
-        def parse_brl(value):
-            if pd.isna(value):
-                return 0.0
-            if isinstance(value, (int, float)):
-                return float(value)
+        # Se não encontrou colunas de ID (como no productoverview diário), 
+        # vamos tratar como um resumo de conta e criar um registro genérico
+        if not id_col:
+            # Criar um registro único representando a conta inteira
+            df_export = pd.DataFrame()
+            df_export['MLB'] = ['CONTA_SHOPEE']
+            df_export['Título'] = ['Resumo Geral da Conta']
+            df_export['SKU'] = ['CONTA_SHOPEE']
             
-            s = str(value).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
-            if not s: return 0.0
+            # Somar totais se as colunas existirem
+            if qty_col:
+                df_export['Qtd total'] = [pd.to_numeric(df[qty_col], errors='coerce').sum()]
+            else:
+                df_export['Qtd total'] = [0]
+                
+            if fat_col:
+                df_export['Fat total'] = [df[fat_col].apply(self._parse_brl).sum()]
+            else:
+                df_export['Fat total'] = [0.0]
+        else:
+            # Filtra apenas produtos pai (linhas com dados agregados) se a coluna existir
+            if 'Visitantes do Produto (Visita)' in df.columns:
+                df_pai = df[df['Visitantes do Produto (Visita)'].notna()].copy()
+            else:
+                df_pai = df.copy()
             
-            # Lógica para tratar 1.234,56 ou 1,234.56 ou 1234,56
-            if ',' in s and '.' in s:
-                if s.find('.') < s.find(','): # 1.234,56
-                    s = s.replace('.', '').replace(',', '.')
-                else: # 1,234.56
-                    s = s.replace(',', '')
-            elif ',' in s:
-                parts = s.split(',')
-                if len(parts) == 2 and len(parts[1]) <= 2:
-                    s = s.replace(',', '.')
-                else:
-                    s = s.replace(',', '')
+            if df_pai.empty:
+                raise ValueError("Nenhum dado encontrado no relatório da Shopee")
             
-            try:
-                cleaned = re.sub(r'[^0-9.]', '', s)
-                return float(cleaned) if cleaned else 0.0
-            except:
-                return 0.0
+            # Mapeia colunas para o formato padronizado
+            df_export = pd.DataFrame()
+            df_export['MLB'] = df_pai[id_col].astype(str).str.strip()
+            df_export['Título'] = df_pai[title_col].astype(str).str.strip() if title_col else df_export['MLB']
+            df_export['SKU'] = df_pai[id_col].astype(str).str.strip()
+            
+            # Métricas de vendas
+            df_export['Qtd total'] = pd.to_numeric(df_pai[qty_col], errors='coerce').fillna(0).astype(int) if qty_col else 0
+            df_export['Fat total'] = df_pai[fat_col].apply(self._parse_brl) if fat_col else 0.0
+            
+        # Funções auxiliares movidas para métodos da classe para reuso
+        return self._finalize_product_export(df_export, df if not id_col else df_pai)
+
+    def _parse_brl(self, value):
+        if pd.isna(value):
+            return 0.0
+        if isinstance(value, (int, float)):
+            return float(value)
         
-        df_export['Fat total'] = df_pai['Vendas (Pedido pago) (BRL)'].apply(parse_brl)
+        s = str(value).replace('R$', '').replace('$', '').replace('\xa0', '').strip()
+        if not s: return 0.0
         
+        # Lógica para tratar 1.234,56 ou 1,234.56 ou 1234,56
+        if ',' in s and '.' in s:
+            if s.find('.') < s.find(','): # 1.234,56
+                s = s.replace('.', '').replace(',', '.')
+            else: # 1,234.56
+                s = s.replace(',', '')
+        elif ',' in s:
+            parts = s.split(',')
+            if len(parts) == 2 and len(parts[1]) <= 2:
+                s = s.replace(',', '.')
+            else:
+                s = s.replace(',', '')
+        
+        try:
+            cleaned = re.sub(r'[^0-9.]', '', s)
+            return float(cleaned) if cleaned else 0.0
+        except:
+            return 0.0
+
+    def _finalize_product_export(self, df_export, df_source) -> pd.DataFrame:
+        """Finaliza o processamento do export de produtos."""
         # Calcula ticket médio
         df_export['TM total'] = df_export.apply(
             lambda row: row['Fat total'] / row['Qtd total'] if row['Qtd total'] > 0 else 0.0,
             axis=1
         ).fillna(0.0)
         
-        # Calcula curva ABC baseada no faturamento total - Agrupar por MLB para garantir consistência
+        # Calcula curva ABC baseada no faturamento total
         df_export = self.calculate_abc_curve(df_export, 'Fat total', group_col='MLB')
         
-        # Como Shopee tem apenas um período no relatório padrão, replica para todos os períodos
-        # para não quebrar a lógica de "Produtos Âncora" e "Plano Tático"
+        # Replica para todos os períodos
         for periodo in ['0-30', '31-60', '61-90', '91-120']:
             df_export[f'Qntd {periodo}'] = df_export['Qtd total'] if periodo == '0-30' else 0
             df_export[f'Fat. {periodo}'] = df_export['Fat total'] if periodo == '0-30' else 0.0
             df_export[f'Curva {periodo}'] = df_export['curva_abc']
         
-        # Dados específicos da Shopee
-        df_export['_shopee_visitantes'] = pd.to_numeric(df_pai['Visitantes do Produto (Visita)'], errors='coerce').fillna(0).astype(int)
-        df_export['_shopee_visualizacoes'] = pd.to_numeric(df_pai['Visualizações da Página do Produto'], errors='coerce').fillna(0).astype(int)
+        # Dados específicos da Shopee (opcionais)
+        if 'Visitantes do Produto (Visita)' in df_source.columns:
+            df_export['_shopee_visitantes'] = pd.to_numeric(df_source['Visitantes do Produto (Visita)'], errors='coerce').fillna(0).astype(int)
+        if 'Visualizações da Página do Produto' in df_source.columns:
+            df_export['_shopee_visualizacoes'] = pd.to_numeric(df_source['Visualizações da Página do Produto'], errors='coerce').fillna(0).astype(int)
         
-        # Taxa de rejeição (formato: "31,93%")
-        def parse_pct(value):
-            if pd.isna(value):
-                return 0.0
-            if isinstance(value, (int, float)):
-                return float(value) / 100 if float(value) > 1 else float(value)
-            
-            value_str = str(value).replace('%', '').replace(',', '.').strip()
-            try:
-                cleaned = re.sub(r'[^0-9.]', '', value_str)
-                return float(cleaned) / 100 if cleaned else 0.0
-            except:
-                return 0.0
-        
-        df_export['_shopee_taxa_rejeicao'] = df_pai['Taxa de Rejeição do Produto'].apply(parse_pct)
-        df_export['_shopee_taxa_conversao'] = df_pai['Taxa de conversão (Pedido pago)'].apply(parse_pct)
-        
-        # Adiciona ao carrinho
-        df_export['_shopee_add_carrinho'] = pd.to_numeric(df_pai['Unidades (adicionar ao carrinho)'], errors='coerce').fillna(0).astype(int)
-        df_export['_shopee_compradores'] = pd.to_numeric(df_pai['Compradores (Pedidos pago)'], errors='coerce').fillna(0).astype(int)
-        
-        # Tenta capturar data se disponível (raro em relatórios de performance, mas possível em outros)
-        date_patterns = ['data', 'date', 'data do pedido', 'order date']
-        date_col = next((c for c in df_pai.columns if any(p in str(c).lower() for p in date_patterns)), None)
-        if date_col:
-            df_export['data'] = pd.to_datetime(df_pai[date_col], errors='coerce')
+        # Taxas
+        if 'Taxa de Rejeição do Produto' in df_source.columns:
+            df_export['_shopee_taxa_rejeicao'] = df_source['Taxa de Rejeição do Produto'].apply(self._parse_pct)
+        if 'Taxa de conversão (Pedido pago)' in df_source.columns:
+            df_export['_shopee_taxa_conversao'] = df_source['Taxa de conversão (Pedido pago)'].apply(self._parse_pct)
             
         # Remove coluna temporária
         df_export = df_export.drop(columns=['curva_abc'], errors='ignore')
         
         return df_export
-    
+
+    def _parse_pct(self, value):
+        if pd.isna(value):
+            return 0.0
+        if isinstance(value, (int, float)):
+            return float(value) / 100 if float(value) > 1 else float(value)
+        
+        value_str = str(value).replace('%', '').replace(',', '.').strip()
+        try:
+            cleaned = re.sub(r'[^0-9.]', '', value_str)
+            return float(cleaned) / 100 if cleaned else 0.0
+        except:
+            return 0.0
+        
     def _process_sales_overview(self, file) -> Optional[pd.DataFrame]:
         """
         Processa o arquivo de visão geral de vendas (sales_overview).
