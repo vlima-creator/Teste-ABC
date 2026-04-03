@@ -20,19 +20,29 @@ def render_shopee_conversion_funnel(df_export: pd.DataFrame):
     
     with col_funil:
         st.markdown("**Funil de Conversão**")
-        # Agrega métricas
-        total_visitantes = df_export['_shopee_visitantes'].sum()
-        total_add_carrinho = df_export['_shopee_add_carrinho'].sum()
-        total_pedidos = df_export['Qtd total'].sum()  # Pedidos realizados
-        total_compradores = df_export['_shopee_compradores'].sum()  # Pedidos pagos
+        # Agrega métricas com verificação de existência de colunas
+        total_visitantes = df_export['_shopee_visitantes'].sum() if '_shopee_visitantes' in df_export.columns else 0
+        total_add_carrinho = df_export['_shopee_add_carrinho'].sum() if '_shopee_add_carrinho' in df_export.columns else 0
+        total_pedidos = df_export['Qtd total'].sum() if 'Qtd total' in df_export.columns else 0
+        total_compradores = df_export['_shopee_compradores'].sum() if '_shopee_compradores' in df_export.columns else 0
         
         # Prepara dados para o gráfico de funil
-        fig = go.Figure(go.Funnel(
-            y = ["Visitantes", "Add Carrinho", "Pedidos", "Pagos"],
-            x = [total_visitantes, total_add_carrinho, total_pedidos, total_compradores],
-            textinfo = "value+percent initial",
-            marker = {"color": ["#60a5fa", "#34d399", "#fbbf24", "#4ade80"]}
-        ))
+        y_labels = ["Visitantes", "Add Carrinho", "Pedidos", "Pagos"]
+        x_values = [total_visitantes, total_add_carrinho, total_pedidos, total_compradores]
+        
+        # Filtra apenas etapas que possuem dados > 0 para o funil não ficar vazio/estranho
+        funnel_data = [(y, x) for y, x in zip(y_labels, x_values) if x >= 0]
+        if funnel_data:
+            y_f, x_f = zip(*funnel_data)
+            fig = go.Figure(go.Funnel(
+                y = list(y_f),
+                x = list(x_f),
+                textinfo = "value+percent initial",
+                marker = {"color": ["#60a5fa", "#34d399", "#fbbf24", "#4ade80"]}
+            ))
+        else:
+            fig = go.Figure()
+            st.info("ℹ️ Dados insuficientes para gerar o funil de conversão.")
         
         fig.update_layout(
             plot_bgcolor='rgba(0,0,0,0)',
@@ -103,19 +113,21 @@ def render_shopee_engagement_metrics(df_export: pd.DataFrame):
     """
     Renderiza métricas de engajamento da Shopee.
     """
-    # Calcula médias ponderadas
-    total_visitantes = df_export['_shopee_visitantes'].sum()
-    total_visualizacoes = df_export['_shopee_visualizacoes'].sum()
+    # Calcula médias ponderadas com verificação de colunas
+    total_visitantes = df_export['_shopee_visitantes'].sum() if '_shopee_visitantes' in df_export.columns else 0
+    total_visualizacoes = df_export['_shopee_visualizacoes'].sum() if '_shopee_visualizacoes' in df_export.columns else 0
     
     # Taxa de rejeição média ponderada
+    taxa_rejeicao_media = 0
+    taxa_conversao_media = 0
+    viz_por_visitante = 0
+    
     if total_visitantes > 0:
-        taxa_rejeicao_media = (df_export['_shopee_taxa_rejeicao'] * df_export['_shopee_visitantes']).sum() / total_visitantes
-        taxa_conversao_media = (df_export['_shopee_taxa_conversao'] * df_export['_shopee_visitantes']).sum() / total_visitantes
+        if '_shopee_taxa_rejeicao' in df_export.columns:
+            taxa_rejeicao_media = (df_export['_shopee_taxa_rejeicao'] * df_export['_shopee_visitantes']).sum() / total_visitantes
+        if '_shopee_taxa_conversao' in df_export.columns:
+            taxa_conversao_media = (df_export['_shopee_taxa_conversao'] * df_export['_shopee_visitantes']).sum() / total_visitantes
         viz_por_visitante = total_visualizacoes / total_visitantes
-    else:
-        taxa_rejeicao_media = 0
-        taxa_conversao_media = 0
-        viz_por_visitante = 0
     
     st.markdown("### 📈 Métricas de Engajamento")
     
@@ -210,31 +222,33 @@ def get_shopee_alerts(df_export: pd.DataFrame):
     alerts = []
     
     # Alerta de Rejeição Alta
-    high_rejection = df_export[
-        (df_export['_shopee_taxa_rejeicao'] > 0.5) & 
-        (df_export['_shopee_visitantes'] > 50)
-    ].sort_values(by='Fat total', ascending=False)
-    
-    for _, row in high_rejection.head(3).iterrows():
-        alerts.append({
-            'SKU': row['SKU'],
-            'Título': row['Título'],
-            'Motivo': f"Taxa de Rejeição Alta: {row['_shopee_taxa_rejeicao']*100:.1f}%",
-            'Ação': "Melhorar fotos e descrição do anúncio."
-        })
+    if '_shopee_taxa_rejeicao' in df_export.columns and '_shopee_visitantes' in df_export.columns:
+        high_rejection = df_export[
+            (df_export['_shopee_taxa_rejeicao'] > 0.5) & 
+            (df_export['_shopee_visitantes'] > 50)
+        ].sort_values(by='Fat total', ascending=False)
+        
+        for _, row in high_rejection.head(3).iterrows():
+            alerts.append({
+                'SKU': row['SKU'],
+                'Título': row['Título'],
+                'Motivo': f"Taxa de Rejeição Alta: {row['_shopee_taxa_rejeicao']*100:.1f}%",
+                'Ação': "Melhorar fotos e descrição do anúncio."
+            })
         
     # Alerta de Conversão Baixa
-    low_conv = df_export[
-        (df_export['_shopee_taxa_conversao'] < 0.01) & 
-        (df_export['_shopee_visitantes'] > 100)
-    ].sort_values(by='_shopee_visitantes', ascending=False)
-    
-    for _, row in low_conv.head(3).iterrows():
-        alerts.append({
-            'SKU': row['SKU'],
-            'Título': row['Título'],
-            'Motivo': f"Conversão Baixa: {row['_shopee_taxa_conversao']*100:.2f}%",
-            'Ação': "Revisar preço e competitividade."
-        })
+    if '_shopee_taxa_conversao' in df_export.columns and '_shopee_visitantes' in df_export.columns:
+        low_conv = df_export[
+            (df_export['_shopee_taxa_conversao'] < 0.01) & 
+            (df_export['_shopee_visitantes'] > 100)
+        ].sort_values(by='_shopee_visitantes', ascending=False)
+        
+        for _, row in low_conv.head(3).iterrows():
+            alerts.append({
+                'SKU': row['SKU'],
+                'Título': row['Título'],
+                'Motivo': f"Conversão Baixa: {row['_shopee_taxa_conversao']*100:.2f}%",
+                'Ação': "Revisar preço e competitividade."
+            })
         
     return alerts
