@@ -46,11 +46,6 @@ class ShopeeProcessor(BaseProcessor):
     def process(self, files: list) -> Tuple[pd.DataFrame, Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[pd.DataFrame]]:
         """
         Processa relatórios da Shopee.
-        
-        Arquivos esperados:
-        - parentskudetail: Performance por produto
-        - sales_overview: Visão geral de vendas (opcional)
-        - traffic_overview: Visão geral de tráfego (opcional)
         """
         # Identifica cada tipo de arquivo
         product_file = None
@@ -61,11 +56,9 @@ class ShopeeProcessor(BaseProcessor):
             file.seek(0)
             filename = getattr(file, 'name', '').lower()
             try:
-                # Tenta ler o arquivo para ver as colunas
                 df_test = pd.read_excel(file, nrows=5)
                 cols = [str(c).lower() for c in df_test.columns]
                 
-                # 1. Identificação por Colunas (Prioridade)
                 if any(x in cols for x in ['id do item', 'sku principle', 'visitantes do produto (visita)', 'produto']):
                     product_file = file
                 elif any(x in cols for x in ['compradores (pedidos feitos)', 'unidades (pedidos feitos)']):
@@ -73,7 +66,6 @@ class ShopeeProcessor(BaseProcessor):
                 elif any(x in cols for x in ['visualizações da página', 'taxa de devolução', 'visitantes (loja)']):
                     traffic_file = file
                 
-                # 2. Identificação por Nome do Arquivo (Fallback se colunas falharem)
                 if not product_file and any(x in filename for x in ['product', 'parentskudetail', 'performance', 'produc']):
                     product_file = file
                 elif not sales_file and any(x in filename for x in ['sales', 'vendas', 'overview']):
@@ -83,21 +75,28 @@ class ShopeeProcessor(BaseProcessor):
                     
                 file.seek(0)
             except Exception:
-                # Se falhar ao ler Excel, tenta ver se o nome ajuda
                 if any(x in filename for x in ['product', 'parentskudetail', 'produc']):
                     product_file = file
                 file.seek(0)
                 continue
         
-        if product_file is None:
-            raise ValueError("Arquivo de performance de produtos da Shopee não encontrado")
-        
-        # Processa arquivo principal de produtos
-        df_export = self._process_product_performance(product_file)
-        
-        # Processa arquivos complementares se disponíveis
+        # Processa arquivos complementares primeiro para ter dados de fallback
         df_sales = self._process_sales_overview(sales_file) if sales_file else None
         df_traffic = self._process_traffic_overview(traffic_file) if traffic_file else None
+
+        # Processa arquivo principal de produtos
+        if product_file:
+            df_export = self._process_product_performance(product_file)
+        else:
+            df_export = pd.DataFrame()
+
+        # MELHORIA: Se df_export for apenas um resumo (CONTA_SHOPEE) ou estiver vazio,
+        # mas tivermos df_sales ou df_traffic com dados diários, vamos tentar extrair produtos de lá
+        # (Nota: No momento, sales_overview e traffic_overview também parecem ser resumos diários da conta)
+        # Se não houver arquivo de performance detalhado (parentskudetail), não há como saber os SKUs.
+        
+        if product_file is None:
+             raise ValueError("Arquivo de performance de produtos (parentskudetail) não encontrado. Certifique-se de subir o relatório detalhado por SKU da Shopee.")
         
         # Extrai dados de PC vs Aplicativo do traffic_overview
         if traffic_file:
