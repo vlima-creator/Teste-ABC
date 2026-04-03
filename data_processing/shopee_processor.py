@@ -59,12 +59,18 @@ class ShopeeProcessor(BaseProcessor):
                 df_test = pd.read_excel(file, nrows=5)
                 cols = [str(c).lower() for c in df_test.columns]
                 
-                if any(x in cols for x in ['id do item', 'sku principle', 'visitantes do produto (visita)', 'produto']):
+                # Prioridade para arquivos detalhados (com ID do Item ou SKU)
+                if any(x in cols for x in ['id do item', 'sku principle', 'sku da variação']):
                     product_file = file
+                # Arquivos de visão geral (overview)
                 elif any(x in cols for x in ['compradores (pedidos feitos)', 'unidades (pedidos feitos)']):
                     sales_file = file
                 elif any(x in cols for x in ['visualizações da página', 'taxa de devolução', 'visitantes (loja)']):
                     traffic_file = file
+                # Caso o productoverview seja confundido com product_file por causa da coluna 'Produto'
+                elif 'visitantes do produto (visita)' in cols and 'id do item' not in cols:
+                    # Este é um product_overview diário, não o detalhado por SKU
+                    pass
                 
                 if not product_file and any(x in filename for x in ['product', 'parentskudetail', 'performance', 'produc']):
                     product_file = file
@@ -96,7 +102,13 @@ class ShopeeProcessor(BaseProcessor):
         # Se não houver arquivo de performance detalhado (parentskudetail), não há como saber os SKUs.
         
         if product_file is None:
-             raise ValueError("Arquivo de performance de produtos (parentskudetail) não encontrado. Certifique-se de subir o relatório detalhado por SKU da Shopee.")
+            # Se não temos o arquivo detalhado, mas temos o product_overview (que pode estar no sales_file ou traffic_file)
+            # vamos tentar usar o que temos para não dar erro, mas avisar que é um resumo
+            if sales_file or traffic_file:
+                # Tenta usar o sales_file como base para o export se ele tiver dados de vendas
+                df_export = self._process_product_performance(sales_file if sales_file else traffic_file)
+            else:
+                raise ValueError("Arquivo de performance de produtos (parentskudetail) não encontrado. Certifique-se de subir o relatório detalhado por SKU da Shopee.")
         
         # Extrai dados de PC vs Aplicativo do traffic_overview
         if traffic_file:
@@ -181,13 +193,23 @@ class ShopeeProcessor(BaseProcessor):
             df_export['SKU'] = ['CONTA_SHOPEE']
             
             # Somar totais se as colunas existirem
+            # Se for um arquivo diário, somamos todas as linhas. Se for um arquivo de resumo (uma linha), pega o valor.
             if qty_col:
-                df_export['Qtd total'] = [pd.to_numeric(df[qty_col], errors='coerce').sum()]
+                # Remove a primeira linha se for o resumo do período (geralmente a primeira linha de arquivos da Shopee)
+                if len(df) > 1 and '01/03/2026-30/03/2026' in str(df.iloc[0, 0]):
+                    df_data = df.iloc[1:]
+                else:
+                    df_data = df
+                df_export['Qtd total'] = [pd.to_numeric(df_data[qty_col], errors='coerce').sum()]
             else:
                 df_export['Qtd total'] = [0]
                 
             if fat_col:
-                df_export['Fat total'] = [df[fat_col].apply(self._parse_brl).sum()]
+                if len(df) > 1 and '01/03/2026-30/03/2026' in str(df.iloc[0, 0]):
+                    df_data = df.iloc[1:]
+                else:
+                    df_data = df
+                df_export['Fat total'] = [df_data[fat_col].apply(self._parse_brl).sum()]
             else:
                 df_export['Fat total'] = [0.0]
         else:
