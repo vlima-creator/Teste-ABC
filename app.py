@@ -1428,7 +1428,8 @@ def render_report_section(icon: str, title: str, desc: str, color: str):
     icon_map = {
         "🔍": "search",
         "📦": "package",
-        "📊": "bar-chart-3"
+        "📊": "bar-chart-3",
+        "⚠️": "alert-triangle"
     }
     icon_name = icon_map.get(icon, "layout")
     svg = get_svg_icon(icon_name)

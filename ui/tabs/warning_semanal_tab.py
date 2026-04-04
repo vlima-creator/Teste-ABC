@@ -57,13 +57,9 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         df_analysis = WeeklyAnalyzer.calculate_warnings(df_analysis)
     
     # ===== HEADER =====
+    from app import render_report_section
     st.markdown(
-        """
-        <div class="hero-header">
-            <h1 class="hero-title">⚠️ Warning Semanal</h1>
-            <p class="hero-subtitle">Monitoramento ágil de performance com alertas de mudança de curva ABC</p>
-        </div>
-        """,
+        render_report_section("⚠️", "Warning Semanal", "Monitoramento ágil de performance com alertas de mudança de curva ABC", "amber"),
         unsafe_allow_html=True
     )
     
