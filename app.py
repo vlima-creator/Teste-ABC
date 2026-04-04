@@ -18,7 +18,7 @@ from ui.components.helpers import to_xlsx_bytes, br_money, br_int, safe_div, pct
 from ui.tabs.guide_tab import render_guide_tab
 from ui.tabs.warning_semanal_tab import render_warning_semanal_tab
 from ui.components.amazon_components import render_amazon_buybox_metrics, get_amazon_buybox_alerts
-from ui.components.shared_ui import render_metric_grid, get_svg_icon, render_metric_card
+from ui.components.shared_ui import render_metric_grid, get_svg_icon, render_metric_card, render_report_section
 
 st.set_page_config(page_title="Curva ABC, Diagnóstico e Ações", layout="wide")
 
@@ -1423,26 +1423,7 @@ def render_front_summary(fronts: list):
     html += '</div>'
     return html
 
-def render_report_section(icon: str, title: str, desc: str, color: str):
-    """Renderiza header de seção do relatório"""
-    icon_map = {
-        "🔍": "search",
-        "📦": "package",
-        "📊": "bar-chart-3",
-        "⚠️": "alert-triangle"
-    }
-    icon_name = icon_map.get(icon, "layout")
-    svg = get_svg_icon(icon_name)
-    return f"""
-<div class='report-section'>
-  <div class='report-header'>
-    <div class='report-icon'>{svg}</div>
-    <div>
-      <div class='report-title'>{title}</div>
-      <div class='report-desc'>{desc}</div>
-    </div>
-  </div>
-    """
+# render_report_section movida para ui/components/shared_ui.py
 
 def render_kpi_highlight(kpis: list):
     """Renderiza KPIs destacados. kpis = [(value, label, color), ...]"""

@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 from ui.components.helpers import br_money, br_int, safe_div, pct, to_xlsx_bytes, ensure_cols
-from ui.components.shared_ui import render_metric_grid, get_svg_icon
+from ui.components.shared_ui import render_metric_grid, get_svg_icon, render_report_section
 from data_processing.weekly_analyzer import WeeklyAnalyzer
 
 
@@ -57,7 +57,6 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
         df_analysis = WeeklyAnalyzer.calculate_warnings(df_analysis)
     
     # ===== HEADER =====
-    from app import render_report_section
     st.markdown(
         render_report_section("⚠️", "Warning Semanal", "Monitoramento ágil de performance com alertas de mudança de curva ABC", "amber"),
         unsafe_allow_html=True

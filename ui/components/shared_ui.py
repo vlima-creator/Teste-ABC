@@ -65,3 +65,28 @@ def render_metric_grid(metrics: list):
         """
     html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
+
+def render_report_section(icon: str, title: str, desc: str, color: str = "purple"):
+    """Renderiza header de seção do relatório"""
+    icon_map = {
+        "🔍": "search",
+        "📦": "package",
+        "📊": "bar-chart-3",
+        "⚠️": "alert-triangle",
+        "layout": "layout",
+        "search": "search",
+        "package": "package"
+    }
+    icon_name = icon_map.get(icon, "layout")
+    svg = get_svg_icon(icon_name)
+    return f"""
+<div class='report-section'>
+  <div class='report-header'>
+    <div class='report-icon'>{svg}</div>
+    <div>
+      <div class='report-title'>{title}</div>
+      <div class='report-desc'>{desc}</div>
+    </div>
+  </div>
+</div>
+    """
