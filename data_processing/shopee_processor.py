@@ -287,10 +287,10 @@ class ShopeeProcessor(BaseProcessor):
             df_export['_shopee_visualizacoes'] = pd.to_numeric(df_source['Visualizações da Página do Produto'], errors='coerce').fillna(0).astype(int)
         
         # Métricas de Funil (Adicionadas para o Dashboard)
-        if 'Adicionar ao carrinho' in df_source.columns:
-            df_export['_shopee_add_carrinho'] = pd.to_numeric(df_source['Adicionar ao carrinho'], errors='coerce').fillna(0).astype(int)
-        if 'Compradores (Pedido pago)' in df_source.columns:
-            df_export['_shopee_compradores'] = pd.to_numeric(df_source['Compradores (Pedido pago)'], errors='coerce').fillna(0).astype(int)
+        if 'Visitantes do Produto (Adicionar ao Carrinho)' in df_source.columns:
+            df_export['_shopee_add_carrinho'] = pd.to_numeric(df_source['Visitantes do Produto (Adicionar ao Carrinho)'], errors='coerce').fillna(0).astype(int)
+        if 'Compradores (Pedidos pago)' in df_source.columns:
+            df_export['_shopee_compradores'] = pd.to_numeric(df_source['Compradores (Pedidos pago)'], errors='coerce').fillna(0).astype(int)
         
         # Taxas
         if 'Taxa de Rejeição do Produto' in df_source.columns:

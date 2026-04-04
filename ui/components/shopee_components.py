@@ -96,8 +96,8 @@ def render_shopee_conversion_funnel(df_export: pd.DataFrame):
     total_compradores = df_export['_shopee_compradores'].sum() if '_shopee_compradores' in df_export.columns else 0
     
     taxa_carrinho = (total_add_carrinho / total_visitantes * 100) if total_visitantes > 0 else 0
-    taxa_pedido = (total_pedidos / total_visitantes * 100) if total_visitantes > 0 else 0
-    taxa_pagamento = (total_compradores / total_pedidos * 100) if total_pedidos > 0 else 0
+    taxa_pedido = (total_compradores / total_visitantes * 100) if total_visitantes > 0 else 0
+    taxa_pagamento = (total_compradores / total_add_carrinho * 100) if total_add_carrinho > 0 else 0
     
     from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
