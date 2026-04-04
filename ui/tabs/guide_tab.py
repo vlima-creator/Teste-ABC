@@ -77,9 +77,9 @@ def render_guide_tab():
                 """
                 Na Shopee, o foco é o **comportamento do usuário** e o funil de vendas.
                 
-                *   **Arquivos Aceitos:** Você pode subir até 3 arquivos (Performance de Produto, Vendas e Tráfego). O de **Performance de Produto** (parentskudetail) é o principal.
-                *   **Taxa de Rejeição:** Indica visitantes que saíram sem interagir. Se estiver alta, revise sua foto principal e título.
-                *   **Conversão de Carrinho:** Mostra se o cliente desiste no fechamento (pode ser frete caro ou falta de cupons).
+                *   **Arquivos Aceitos:** Você pode subir até 3 arquivos simultaneamente para uma análise completa.
+                *   **Performance de Produto:** (Obrigatório) Relatório detalhado por SKU para análise de conversão e rejeição.
+                *   **Vendas e Tráfego:** (Opcional) Relatórios de visão geral que permitem uma análise semanal mais precisa.
                 *   **Análise Semanal:** O sistema monitora as últimas 5 semanas para detectar mudanças rápidas de tendência.
                 """
             )
@@ -88,9 +88,10 @@ def render_guide_tab():
                 """
                 **Onde baixar:**
                 1. Informações Gerenciais
-                2. Aba Produto
-                3. Performance de Produto
-                4. Exportar (Excel)
+                2. Aba Produto > Performance
+                3. Aba Vendas > Visão Geral
+                4. Aba Tráfego > Visão Geral
+                5. Exportar todos em **Excel**
                 """
             )
 
@@ -101,9 +102,10 @@ def render_guide_tab():
                 """
                 A métrica vital na Amazon é a **Buy Box (Oferta em Destaque)**.
                 
+                *   **Multi-arquivos:** Você pode subir vários CSVs de "Relatórios de Negócios" e o sistema irá consolidar os dados automaticamente.
                 *   **Buy Box %:** Se estiver abaixo de 80%, o sistema sinaliza como perda de destaque. Abaixo de 20% é considerado nível crítico.
-                *   **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão (abaixo de 1%), o problema é a oferta. Se tem poucas sessões e alta conversão, o problema é o tráfego (SEO/Ads).
-                *   **Multi-arquivos:** Você pode subir vários CSVs de "Relatórios de Negócios" e o sistema irá consolidá-los.
+                *   **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão (abaixo de 1%), o problema é a oferta.
+                *   **Análise Semanal:** Ao subir relatórios com datas, o sistema habilita o monitoramento de tendências das últimas 5 semanas.
                 """
             )
         with col_am_2:
@@ -112,8 +114,8 @@ def render_guide_tab():
                 **Onde baixar:**
                 1. Relatórios > Negócios
                 2. Detalhes de vendas e tráfego por ASIN
-                3. Selecionar período
-                4. Exportar (CSV)
+                3. Selecionar período desejado
+                4. Exportar em **CSV**
                 """
             )
 

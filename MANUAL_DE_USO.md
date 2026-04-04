@@ -32,7 +32,8 @@ Foco em **estabilidade de vendas** e **eficiência logística**.
 
 ### 📱 Shopee
 Foco no **comportamento do usuário** e funil de vendas.
-- **Relatório:** Informações Gerenciais > Produto > Performance de Produto (Excel).
+- **Arquivos Aceitos:** Você pode subir até 3 arquivos simultaneamente (Performance de Produto, Vendas e Tráfego).
+- **Relatório Principal:** Informações Gerenciais > Produto > Performance de Produto (Excel).
 - **Métricas Chave:** 
   - **Taxa de Rejeição:** Se alta, melhore a foto principal e o título.
   - **Conversão de Carrinho:** Se baixa, revise frete e cupons.
@@ -40,7 +41,8 @@ Foco no **comportamento do usuário** e funil de vendas.
 
 ### 🛡️ Amazon
 Foco em **Buy Box** e **Visibilidade**.
-- **Relatório:** Relatórios > Negócios > Por ASIN (CSV).
+- **Multi-arquivos:** Você pode subir vários CSVs de "Relatórios de Negócios" e o sistema irá consolidar os dados automaticamente.
+- **Relatório:** Relatórios > Negócios > Detalhes de vendas e tráfego por ASIN (CSV).
 - **Métrica Vital:** **Buy Box %**. Se abaixo de 80%, o sistema sinaliza como perda de destaque. Abaixo de 20% é considerado nível crítico.
 - **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão (abaixo de 1%), o problema é a oferta.
 
