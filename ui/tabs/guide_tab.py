@@ -77,10 +77,10 @@ def render_guide_tab():
                 """
                 Na Shopee, o foco é o **comportamento do usuário** e o funil de vendas.
                 
-                *   **Arquivos Aceitos:** Você pode subir até 3 arquivos (Performance de Produto, Vendas e Tráfego). O de **Performance de Produto** é o principal.
+                *   **Arquivos Aceitos:** Você pode subir até 3 arquivos (Performance de Produto, Vendas e Tráfego). O de **Performance de Produto** (parentskudetail) é o principal.
                 *   **Taxa de Rejeição:** Indica visitantes que saíram sem interagir. Se estiver alta, revise sua foto principal e título.
                 *   **Conversão de Carrinho:** Mostra se o cliente desiste no fechamento (pode ser frete caro ou falta de cupons).
-                *   **Nota:** A análise Shopee foca nos últimos 30 dias.
+                *   **Análise Semanal:** O sistema monitora as últimas 5 semanas para detectar mudanças rápidas de tendência.
                 """
             )
         with col_sh_2:
@@ -101,8 +101,8 @@ def render_guide_tab():
                 """
                 A métrica vital na Amazon é a **Buy Box (Oferta em Destaque)**.
                 
-                *   **Buy Box %:** Se estiver abaixo de 90% em produtos Curva A, você está perdendo vendas para concorrentes ou por preço desalinhado.
-                *   **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão, o problema é a oferta. Se tem poucas sessões e alta conversão, o problema é o tráfego (SEO/Ads).
+                *   **Buy Box %:** Se estiver abaixo de 80%, o sistema sinaliza como perda de destaque. Abaixo de 20% é considerado nível crítico.
+                *   **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão (abaixo de 1%), o problema é a oferta. Se tem poucas sessões e alta conversão, o problema é o tráfego (SEO/Ads).
                 *   **Multi-arquivos:** Você pode subir vários CSVs de "Relatórios de Negócios" e o sistema irá consolidá-los.
                 """
             )
@@ -179,6 +179,7 @@ def render_guide_tab():
         st.markdown(
             """
             *   **Mercado Livre:** Verifique se você selecionou o período de 120 dias. Se selecionar menos, os buckets de 60/90/120 ficarão zerados.
+            *   **Warning Semanal:** Esta aba sempre foca nas últimas 5 semanas de dados para garantir uma análise ágil de tendências.
             *   **Filtros:** Verifique se há filtros aplicados no menu lateral que estão ocultando dados.
             """
         )

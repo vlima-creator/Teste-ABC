@@ -36,11 +36,13 @@ Foco no **comportamento do usuário** e funil de vendas.
 - **Métricas Chave:** 
   - **Taxa de Rejeição:** Se alta, melhore a foto principal e o título.
   - **Conversão de Carrinho:** Se baixa, revise frete e cupons.
+  - **Análise Semanal:** O sistema monitora as últimas 5 semanas para detectar mudanças rápidas de tendência.
 
 ### 🛡️ Amazon
 Foco em **Buy Box** e **Visibilidade**.
 - **Relatório:** Relatórios > Negócios > Por ASIN (CSV).
-- **Métrica Vital:** **Buy Box %**. Se abaixo de 90% em produtos Curva A, você tem uma emergência operacional.
+- **Métrica Vital:** **Buy Box %**. Se abaixo de 80%, o sistema sinaliza como perda de destaque. Abaixo de 20% é considerado nível crítico.
+- **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão (abaixo de 1%), o problema é a oferta.
 
 ---
 
@@ -66,6 +68,7 @@ O sistema gera recomendações automáticas:
 ## 🛠️ Solução de Problemas
 - **Arquivo não reconhecido:** Verifique se é o arquivo original sem edições.
 - **Dados zerados:** No Mercado Livre, certifique-se de ter baixado o período de 120 dias.
+- **Warning Semanal:** Esta aba sempre foca nas últimas 5 semanas de dados para garantir uma análise ágil de tendências.
 
 ---
 **Desenvolvido por Vinicius Lima**  
