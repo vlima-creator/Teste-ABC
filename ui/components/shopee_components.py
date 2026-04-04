@@ -10,8 +10,7 @@ import pandas as pd
 def render_shopee_conversion_funnel(df_export: pd.DataFrame):
     """
     Renderiza as métricas de conversão da Shopee: funil + origem do tráfego.
-    
-    Etapas: Visitantes → Add ao Carrinho → Pedidos → Pagos
+    Estilo visual atualizado para Donut Charts conforme solicitado.
     """
     st.markdown("### 📊 Métricas de Conversão")
     
@@ -19,88 +18,87 @@ def render_shopee_conversion_funnel(df_export: pd.DataFrame):
     col_funil, col_origem = st.columns(2)
     
     with col_funil:
-        st.markdown("**Funil de Conversão**")
-        # Agrega métricas com verificação de existência de colunas
+        st.markdown("<div style='text-align: center; font-weight: bold; margin-bottom: 10px;'>Funil de Conversão</div>", unsafe_allow_html=True)
+        
+        # Agrega métricas
         total_visitantes = df_export['_shopee_visitantes'].sum() if '_shopee_visitantes' in df_export.columns else 0
         total_add_carrinho = df_export['_shopee_add_carrinho'].sum() if '_shopee_add_carrinho' in df_export.columns else 0
         total_pedidos = df_export['Qtd total'].sum() if 'Qtd total' in df_export.columns else 0
         total_compradores = df_export['_shopee_compradores'].sum() if '_shopee_compradores' in df_export.columns else 0
         
-        # Prepara dados para o gráfico de funil
-        y_labels = ["Visitantes", "Add Carrinho", "Pedidos", "Pagos"]
-        x_values = [total_visitantes, total_add_carrinho, total_pedidos, total_compradores]
-        
-        # Filtra apenas etapas que possuem dados > 0 para o funil não ficar vazio/estranho
-        funnel_data = [(y, x) for y, x in zip(y_labels, x_values) if x >= 0]
-        if funnel_data:
-            y_f, x_f = zip(*funnel_data)
-            fig = go.Figure(go.Funnel(
-                y = list(y_f),
-                x = list(x_f),
-                textinfo = "value+percent initial",
-                marker = {"color": ["#60a5fa", "#34d399", "#fbbf24", "#4ade80"]}
-            ))
+        if total_visitantes > 0:
+            # Cores do print: Azul, Verde Água, Laranja, Verde Claro
+            colors = ['#60a5fa', '#34d399', '#fbbf24', '#4ade80']
+            labels = ["Visitantes", "Add Carrinho", "Pedidos", "Pagos"]
+            values = [total_visitantes, total_add_carrinho, total_pedidos, total_compradores]
+            
+            # Donut Chart para o Funil
+            fig = go.Figure(data=[go.Pie(
+                labels=labels,
+                values=values,
+                hole=0.5,
+                marker=dict(colors=colors),
+                textinfo='label+value+percent',
+                textposition='inside',
+                insidetextorientation='horizontal',
+                sort=False
+            )])
+            
+            fig.update_layout(
+                showlegend=True,
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=400,
+                legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.0)
+            )
+            st.plotly_chart(fig, use_container_width=True)
         else:
-            fig = go.Figure()
             st.info("ℹ️ Dados insuficientes para gerar o funil de conversão.")
-        
-        fig.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            margin=dict(l=20, r=20, t=20, b=20),
-            font=dict(color='#9ca3af'),
-            height=400
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
     
     with col_origem:
-        st.markdown("**Origem do Tráfego**")
-        # Verifica se há dados de PC/App
+        st.markdown("<div style='text-align: center; font-weight: bold; margin-bottom: 10px;'>Origem do Tráfego</div>", unsafe_allow_html=True)
+        
         if '_shopee_visitantes_pc' in df_export.columns and '_shopee_visitantes_app' in df_export.columns:
-            visitantes_pc = df_export['_shopee_visitantes_pc'].iloc[0]
-            visitantes_app = df_export['_shopee_visitantes_app'].iloc[0]
+            visitantes_pc = df_export['_shopee_visitantes_pc'].sum()
+            visitantes_app = df_export['_shopee_visitantes_app'].sum()
             
             if visitantes_pc > 0 or visitantes_app > 0:
-                # Cria gráfico de pizza para PC vs Aplicativo
+                # Cores do print: Rosa/Coral para Aplicativo, Ciano para PC
                 fig_origem = go.Figure(data=[go.Pie(
                     labels=['Aplicativo', 'PC'],
                     values=[visitantes_app, visitantes_pc],
-                    marker=dict(
-                        colors=['#FF6B6B', '#4ECDC4'],
-                        line=dict(color='rgba(255,255,255,0.3)', width=2)
-                    ),
-                    textfont=dict(size=14, color='white', family='Inter'),
-                    textposition='inside',
+                    hole=0.5,
+                    marker=dict(colors=['#FF6B6B', '#4ECDC4']),
                     textinfo='label+value+percent',
-                    hole=0.4  # Donut chart
+                    textposition='inside',
+                    insidetextorientation='horizontal'
                 )])
                 
                 fig_origem.update_layout(
+                    showlegend=True,
                     plot_bgcolor='rgba(0,0,0,0)',
                     paper_bgcolor='rgba(0,0,0,0)',
-                    margin=dict(l=20, r=20, t=20, b=20),
-                    font=dict(color='#9ca3af'),
+                    margin=dict(l=10, r=10, t=10, b=10),
                     height=400,
-                    showlegend=True,
-                    legend=dict(
-                        font=dict(color='#ffffff'),
-                        bgcolor='rgba(0,0,0,0)'
-                    )
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.0)
                 )
-                
                 st.plotly_chart(fig_origem, use_container_width=True)
             else:
-                st.info("📊 Dados de origem do tráfego zerados. Verifique o arquivo traffic_overview.")
+                st.info("📊 Dados de origem do tráfego zerados.")
         else:
-            st.info("📊 Dados de origem do tráfego não disponíveis. Faça upload do arquivo traffic_overview para visualizar.")
+            st.info("📊 Dados de origem do tráfego não disponíveis.")
     
-    # Calcula taxas de conversão
+    # Calcula taxas de conversão para os cards abaixo
+    total_visitantes = df_export['_shopee_visitantes'].sum() if '_shopee_visitantes' in df_export.columns else 0
+    total_add_carrinho = df_export['_shopee_add_carrinho'].sum() if '_shopee_add_carrinho' in df_export.columns else 0
+    total_pedidos = df_export['Qtd total'].sum() if 'Qtd total' in df_export.columns else 0
+    total_compradores = df_export['_shopee_compradores'].sum() if '_shopee_compradores' in df_export.columns else 0
+    
     taxa_carrinho = (total_add_carrinho / total_visitantes * 100) if total_visitantes > 0 else 0
     taxa_pedido = (total_pedidos / total_visitantes * 100) if total_visitantes > 0 else 0
     taxa_pagamento = (total_compradores / total_pedidos * 100) if total_pedidos > 0 else 0
     
-    # Exibe métricas de conversão em cards
     from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
         ("Taxa Add Carrinho", f"{taxa_carrinho:.2f}%", "🛒", "blue"),
@@ -111,13 +109,11 @@ def render_shopee_conversion_funnel(df_export: pd.DataFrame):
 
 def render_shopee_engagement_metrics(df_export: pd.DataFrame):
     """
-    Renderiza métricas de engajamento da Shopee.
+    Renderiza métricas de engajamento da Shopee e o balão de alerta de Ações Recomendadas.
     """
-    # Calcula médias ponderadas com verificação de colunas
     total_visitantes = df_export['_shopee_visitantes'].sum() if '_shopee_visitantes' in df_export.columns else 0
     total_visualizacoes = df_export['_shopee_visualizacoes'].sum() if '_shopee_visualizacoes' in df_export.columns else 0
     
-    # Taxa de rejeição média ponderada
     taxa_rejeicao_media = 0
     taxa_conversao_media = 0
     viz_por_visitante = 0
@@ -139,6 +135,36 @@ def render_shopee_engagement_metrics(df_export: pd.DataFrame):
         ("Total de Visitantes", f"{int(total_visitantes):,}", "👥", "purple")
     ])
 
+    # Balão de Alerta de Ações Recomendadas (Reativado)
+    if '_shopee_taxa_rejeicao' in df_export.columns:
+        # Produtos com rejeição > 50% e pelo menos 50 visitantes
+        high_rejection_df = df_export[
+            (df_export['_shopee_taxa_rejeicao'] > 0.5) & 
+            (df_export['_shopee_visitantes'] >= 50)
+        ].sort_values('_shopee_taxa_rejeicao', ascending=False)
+
+        if not high_rejection_df.empty:
+            count = len(high_rejection_df)
+            top_prod = high_rejection_df.iloc[0]
+            
+            # Usando o estilo de insight-card do app.py
+            from ui.components.shared_ui import get_svg_icon
+            lightbulb_svg = get_svg_icon("lightbulb")
+            
+            st.markdown(f"""
+            <div class='insight-card' style='margin-top: 20px; border-left: 4px solid #fbbf24;'>
+              <div class='insight-icon' style='color: #fbbf24;'>{lightbulb_svg}</div>
+              <div>
+                <div class='insight-title'>Ações Recomendadas: Alta Taxa de Rejeição</div>
+                <div class='insight-text'>
+                    Identificamos <b>{count} produtos</b> com taxa de rejeição acima de 50%. <br/>
+                    <b>Destaque:</b> {top_prod['Título']} ({top_prod['_shopee_taxa_rejeicao']*100:.1f}% de rejeição). <br/>
+                    <i>Sugestão: Revise as fotos principais, o título e o preço para aumentar a retenção dos visitantes.</i>
+                </div>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
 
 def render_shopee_top_rejection_rate(df_export: pd.DataFrame):
     """
@@ -146,7 +172,6 @@ def render_shopee_top_rejection_rate(df_export: pd.DataFrame):
     """
     st.markdown("### ⚠️ Top 5 Produtos com Maior Taxa de Rejeição")
     
-    # Filtrar produtos com dados válidos
     df_valid = df_export[
         (df_export['_shopee_taxa_rejeicao'].notna()) & 
         (df_export['_shopee_taxa_rejeicao'] > 0) &
@@ -157,22 +182,16 @@ def render_shopee_top_rejection_rate(df_export: pd.DataFrame):
         st.info("⚠️ Não há dados de taxa de rejeição disponíveis.")
         return
     
-    # Ordenar por taxa de rejeição (maior para menor) e pegar top 5
     top_rejection = df_valid.nlargest(5, '_shopee_taxa_rejeicao')[[
         'SKU', 'Título', '_shopee_taxa_rejeicao', '_shopee_visitantes', 
         '_shopee_taxa_conversao', 'Fat total'
     ]].copy()
     
-    # Formatar valores para exibição
     top_rejection['_shopee_taxa_rejeicao'] = top_rejection['_shopee_taxa_rejeicao'].apply(lambda x: f"{x*100:.1f}%")
     top_rejection['_shopee_taxa_conversao'] = top_rejection['_shopee_taxa_conversao'].apply(lambda x: f"{x*100:.2f}%")
     top_rejection['Fat total'] = top_rejection['Fat total'].apply(lambda x: f"R$ {x:,.2f}")
     
-    st.dataframe(
-        top_rejection,
-        use_container_width=True,
-        hide_index=True
-    )
+    st.dataframe(top_rejection, use_container_width=True, hide_index=True)
 
 
 def render_shopee_abc_distribution(df_export: pd.DataFrame):
@@ -217,11 +236,10 @@ def render_shopee_top_products(df_export: pd.DataFrame, top_n=10):
 
 def get_shopee_alerts(df_export: pd.DataFrame):
     """
-    Retorna alertas específicos para a Shopee.
+    Retorna alertas específicos para a Shopee para o Plano Tático.
     """
     alerts = []
     
-    # Alerta de Rejeição Alta
     if '_shopee_taxa_rejeicao' in df_export.columns and '_shopee_visitantes' in df_export.columns:
         high_rejection = df_export[
             (df_export['_shopee_taxa_rejeicao'] > 0.5) & 
@@ -236,7 +254,6 @@ def get_shopee_alerts(df_export: pd.DataFrame):
                 'Ação': "Melhorar fotos e descrição do anúncio."
             })
         
-    # Alerta de Conversão Baixa
     if '_shopee_taxa_conversao' in df_export.columns and '_shopee_visitantes' in df_export.columns:
         low_conv = df_export[
             (df_export['_shopee_taxa_conversao'] < 0.01) & 
