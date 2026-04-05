@@ -1,4 +1,5 @@
 import streamlit as st
+from ui.components.shared_ui import render_report_section, render_metric_grid
 
 def render_guide_tab():
     st.markdown(
@@ -12,7 +13,7 @@ def render_guide_tab():
     )
 
     # Seção 1: Fluxo de Trabalho
-    st.markdown("### 🚀 Fluxo de Trabalho Recomendado")
+    st.markdown(render_report_section("layout", "Fluxo de Trabalho Recomendado", "Siga estes passos para uma análise precisa", "purple"), unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
@@ -44,9 +45,9 @@ def render_guide_tab():
     st.markdown("---")
 
     # Seção 2: Detalhes por Canal
-    st.markdown("### 📊 Especificações por Canal")
+    st.markdown(render_report_section("📊", "Especificações por Canal", "Detalhes técnicos para cada marketplace", "blue"), unsafe_allow_html=True)
     
-    with st.expander("📦 Mercado Livre - Análise de Giro e Logística", expanded=True):
+    with st.expander("Mercado Livre - Análise de Giro e Logística", expanded=True):
         col_ml_1, col_ml_2 = st.columns([2, 1])
         with col_ml_1:
             st.markdown(
@@ -70,7 +71,7 @@ def render_guide_tab():
                 """
             )
 
-    with st.expander("📱 Shopee - Funil de Conversão e Rejeição"):
+    with st.expander("Shopee - Funil de Conversão e Rejeição"):
         col_sh_1, col_sh_2 = st.columns([2, 1])
         with col_sh_1:
             st.markdown(
@@ -95,7 +96,7 @@ def render_guide_tab():
                 """
             )
 
-    with st.expander("🛡️ Amazon - Buy Box e Visibilidade"):
+    with st.expander("Amazon - Buy Box e Visibilidade"):
         col_am_1, col_am_2 = st.columns([2, 1])
         with col_am_1:
             st.markdown(
@@ -122,32 +123,26 @@ def render_guide_tab():
     st.markdown("---")
 
     # Seção 3: Inteligência e Ações
-    st.markdown("### 🧠 Inteligência e Ações Táticas")
-    st.markdown(
-        """
-        O sistema gera automaticamente **Cards Táticos** com base no comportamento de cada produto. 
-        Veja como interpretar as principais recomendações:
-        """
-    )
+    st.markdown(render_report_section("lightbulb", "Inteligência e Ações Táticas", "Interpretação das recomendações automáticas", "amber"), unsafe_allow_html=True)
     
-    tac1, tac2, tac3 = st.columns(3)
+    tac_metrics = [
+        ("Defesa de Curva A", "Proteger Faturamento", "🛡️", "rose"),
+        ("Ataque de Curva B", "Escalar Vendas", "⚔️", "green"),
+        ("Limpeza de Curva C", "Liberar Capital", "🧹", "blue")
+    ]
+    # Como render_metric_grid espera emojis para mapear para ícones, vamos ajustar o mapeamento no shared_ui ou usar os nomes de ícones diretamente se suportado.
+    # Vou usar render_metric_grid com os ícones mapeados.
     
-    with tac1:
-        st.markdown("🛡️ **Defesa de Curva A**")
-        st.caption("Produtos com alto faturamento mas queda de Buy Box ou estoque baixo. Ação imediata necessária para proteger o faturamento.")
-        
-    with tac2:
-        st.markdown("⚔️ **Ataque de Curva B**")
-        st.caption("Produtos com potencial de virar 'A'. Recomenda-se aumento de investimento em Ads ou melhoria de SEO.")
-        
-    with tac3:
-        st.markdown("🧹 **Limpeza de Curva C**")
-        st.caption("Produtos com baixo giro e estoque parado. Recomenda-se liquidação para liberar capital de giro.")
+    render_metric_grid([
+        ("Defesa de Curva A", "Proteger Faturamento", "star", "rose"),
+        ("Ataque de Curva B", "Escalar Vendas", "trending-up", "green"),
+        ("Limpeza de Curva C", "Liberar Capital", "package", "blue")
+    ])
 
     st.markdown("---")
 
     # Seção 4: Entendendo a Curva ABC
-    st.markdown("### 📈 Entendendo a Curva ABC")
+    st.markdown(render_report_section("bar-chart-3", "Entendendo a Curva ABC", "Classificação de relevância do catálogo", "green"), unsafe_allow_html=True)
     
     abc_col1, abc_col2, abc_col3 = st.columns(3)
     
@@ -166,7 +161,7 @@ def render_guide_tab():
     st.markdown("---")
 
     # Seção 5: Solução de Problemas
-    st.markdown("### 🛠️ Solução de Problemas Comuns")
+    st.markdown(render_report_section("⚠️", "Solução de Problemas Comuns", "Dúvidas frequentes e erros de processamento", "rose"), unsafe_allow_html=True)
     
     with st.expander("O sistema não reconheceu meu arquivo"):
         st.markdown(
