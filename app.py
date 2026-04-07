@@ -2562,6 +2562,7 @@ with tab4:
     )
 
     # Tabelas por frente
+    front_order = ["DEFESA", "CORREÇÃO", "ATAQUE", "LIMPEZA", "OTIMIZAÇÃO"]
     for fr in front_order:
         subset = op[op["Frente"] == fr].head(10).copy()
         if len(subset) == 0:
