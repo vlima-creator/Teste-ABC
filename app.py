@@ -2542,6 +2542,7 @@ with tab4:
     # Fuga de receita
     st.markdown(render_report_section("alert-triangle", "Alerta de Fuga de Receita", "Produtos com queda brusca de performance", "rose"), unsafe_allow_html=True)
     if len(drop_alert) > 0:
+        loss_total = float(drop_alert["Perda estimada"].sum()) if "Perda estimada" in drop_alert.columns else 0.0
         st.markdown(
             render_insight_card("alert-triangle", "Atenção Imediata", 
                 f"Você tem {len(drop_alert)} produtos que caíram de curva, representando uma perda estimada de {br_money(loss_total)}. Priorize a correção destes itens."),
