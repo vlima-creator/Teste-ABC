@@ -2526,11 +2526,11 @@ with tab4:
     # Resumo das frentes
     st.markdown(
         render_front_summary([
-            ("🛡️", int(front_counts_all.get("DEFESA", 0)), "DEFESA"),
-            ("⚠️", int(front_counts_all.get("CORREÇÃO", 0)), "CORREÇÃO"),
-            ("🚀", int(front_counts_all.get("ATAQUE", 0)), "ATAQUE"),
-            ("🧹", int(front_counts_all.get("LIMPEZA", 0)), "LIMPEZA"),
-            ("⚙️", int(front_counts_all.get("OTIMIZAÇÃO", 0)), "OTIMIZAÇÃO"),
+            ("🛡️", int(all_front_counts.get("DEFESA", 0)), "DEFESA"),
+            ("⚠️", int(all_front_counts.get("CORREÇÃO", 0)), "CORREÇÃO"),
+            ("🚀", int(all_front_counts.get("ATAQUE", 0)), "ATAQUE"),
+            ("🧹", int(all_front_counts.get("LIMPEZA", 0)), "LIMPEZA"),
+            ("⚙️", int(all_front_counts.get("OTIMIZAÇÃO", 0)), "OTIMIZAÇÃO"),
         ]),
         unsafe_allow_html=True
     )
