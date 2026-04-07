@@ -2198,6 +2198,9 @@ def frente_bucket(idx):
 
 plan["Frente"] = [frente_bucket(i) for i in plan.index]
 
+# Contagem de produtos por frente para os filtros
+all_front_counts = plan["Frente"].value_counts().to_dict()
+
 # Alertas de Buybox para Amazon
 if st.session_state.get('canal') == 'Amazon':
     buybox_alerts = get_amazon_buybox_alerts(df_f)
