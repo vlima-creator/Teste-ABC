@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 from ui.components.helpers import br_money, br_int, safe_div, pct, to_xlsx_bytes, ensure_cols
-from ui.components.shared_ui import render_metric_grid, get_svg_icon, render_report_section
+from ui.components.shared_ui import render_metric_grid, get_svg_icon, render_report_section, get_icon_name
 from data_processing.weekly_analyzer import WeeklyAnalyzer
 
 
@@ -25,7 +25,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     
     # Se não temos dados brutos, tenta extrair do df_export
     if df_raw is None or df_raw.empty:
-        st.warning("⚠️ Dados brutos não disponíveis para análise semanal detalhada. Usando dados agregados de 30 dias.")
+        st.warning("Dados brutos não disponíveis para análise semanal detalhada. Usando dados agregados de 30 dias.")
         # Usar dados agregados disponíveis
         df_analysis = df_export.copy()
         
@@ -58,7 +58,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     
     # ===== HEADER =====
     st.markdown(
-        render_report_section("⚠️", "Warning Semanal", "Monitoramento ágil de performance com alertas de mudança de curva ABC", "amber"),
+        render_report_section("activity", "Warning Semanal", "Monitoramento ágil de performance com alertas de mudança de curva ABC", "amber"),
         unsafe_allow_html=True
     )
     
@@ -101,7 +101,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     with col1:
         view_mode = st.radio(
             "Escolha a visão:",
-            ["📊 Volume", "💰 Faturamento", "📈 Curva ABC"],
+            ["Volume", "Faturamento", "Curva ABC"],
             horizontal=False
         )
     
@@ -155,13 +155,13 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
     if 'Fat Total' not in df_filtered.columns:
         df_filtered['Fat Total'] = df_filtered[fat_cols].sum(axis=1) if fat_cols else 0
 
-    if view_mode == "📊 Volume":
+    if view_mode == "Volume":
         col_v1, col_v2 = st.columns([1, 1])
         
         with col_v1:
             # Top 10 Quedas
             if 'Delta %' in df_filtered.columns:
-                st.markdown("📉 **Maiores Quedas de Volume (Sem1 vs Sem2):**")
+                st.markdown("Maiores Quedas de Volume (Sem1 vs Sem2):")
                 # Filtrar produtos que tinham pelo menos 1 venda na Sem2 para evitar -100% irrelevantes
                 # E ordenar pela queda absoluta (Delta Qtd) para mostrar o que mais impactou o volume
                 drops_df = df_filtered[df_filtered['Qntd Sem2'] > 0].copy()
@@ -227,7 +227,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             use_container_width=True
         )
 
-    elif view_mode == "💰 Faturamento":
+    elif view_mode == "Faturamento":
         # Similar ao volume, mas para faturamento
         st.markdown("**Detalhamento de Faturamento por Semana:**")
         cols_to_show = [id_col, title_col] + fat_cols + ['Fat Total']
@@ -249,7 +249,7 @@ def render_warning_semanal_tab(df_export: pd.DataFrame, df_raw: pd.DataFrame = N
             use_container_width=True
         )
 
-    elif view_mode == "📈 Curva ABC":
+    elif view_mode == "Curva ABC":
         # Mostrar mudança de curva
         st.markdown("**Mudança de Curva ABC (Semana Atual vs Anterior):**")
         

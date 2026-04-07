@@ -1,4 +1,5 @@
 import streamlit as st
+from ui.components.shared_ui import get_svg_icon
 
 def render_guide_tab():
     st.markdown(
@@ -12,7 +13,7 @@ def render_guide_tab():
     )
 
     # Seção 1: Fluxo de Trabalho
-    st.markdown("### 🚀 Fluxo de Trabalho Recomendado")
+    st.markdown("### Fluxo de Trabalho Recomendado")
     
     col1, col2, col3 = st.columns(3)
     
@@ -40,13 +41,13 @@ def render_guide_tab():
             Navegue pelas abas de diagnóstico. Identifique produtos que estão perdendo performance e aplique as ações recomendadas pelo sistema.
             """
         )
-
+    
     st.markdown("---")
 
     # Seção 2: Detalhes por Canal
-    st.markdown("### 📊 Especificações por Canal")
+    st.markdown("### Especificações por Canal")
     
-    with st.expander("📦 Mercado Livre - Análise de Giro e Logística", expanded=True):
+    with st.expander("Mercado Livre - Análise de Giro e Logística", expanded=True):
         col_ml_1, col_ml_2 = st.columns([2, 1])
         with col_ml_1:
             st.markdown(
@@ -70,7 +71,7 @@ def render_guide_tab():
                 """
             )
 
-    with st.expander("📱 Shopee - Funil de Conversão e Rejeição"):
+    with st.expander("Shopee - Funil de Conversão e Rejeição"):
         col_sh_1, col_sh_2 = st.columns([2, 1])
         with col_sh_1:
             st.markdown(
@@ -94,7 +95,7 @@ def render_guide_tab():
                 """
             )
 
-    with st.expander("🛡️ Amazon - Buy Box e Visibilidade"):
+    with st.expander("Amazon - Buy Box e Visibilidade"):
         col_am_1, col_am_2 = st.columns([2, 1])
         with col_am_1:
             st.markdown(
@@ -120,7 +121,7 @@ def render_guide_tab():
     st.markdown("---")
 
     # Seção 3: Inteligência e Ações
-    st.markdown("### 🧠 Inteligência e Ações Táticas")
+    st.markdown("### Inteligência e Ações Táticas")
     st.markdown(
         """
         O sistema gera automaticamente **Cards Táticos** com base no comportamento de cada produto. 
@@ -131,21 +132,24 @@ def render_guide_tab():
     tac1, tac2, tac3 = st.columns(3)
     
     with tac1:
-        st.markdown("🛡️ **Defesa de Curva A**")
+        st.markdown(f'<div class="metric-icon" style="width:32px; height:32px; margin-bottom:8px;">{get_svg_icon("target")}</div>', unsafe_allow_html=True)
+        st.markdown("**Defesa de Curva A**")
         st.caption("Produtos com alto faturamento mas queda de Buy Box ou estoque baixo. Ação imediata necessária para proteger o faturamento.")
         
     with tac2:
-        st.markdown("⚔️ **Ataque de Curva B**")
-        st.caption("Produtos com potencial de virar 'A'. Recomenda-se aumento de investimento em Ads ou melhoria de SEO.")
+        st.markdown(f'<div class="metric-icon" style="width:32px; height:32px; margin-bottom:8px;">{get_svg_icon("trending-up")}</div>', unsafe_allow_html=True)
+        st.markdown("**Ataque de Curva B**")
+        st.caption("Produtos com potencial de virar \'A\'. Recomenda-se aumento de investimento em Ads ou melhoria de SEO.")
         
     with tac3:
-        st.markdown("🧹 **Limpeza de Curva C**")
+        st.markdown(f'<div class="metric-icon" style="width:32px; height:32px; margin-bottom:8px;">{get_svg_icon("package")}</div>', unsafe_allow_html=True)
+        st.markdown("**Limpeza de Curva C**")
         st.caption("Produtos com baixo giro e estoque parado. Recomenda-se liquidação para liberar capital de giro.")
 
     st.markdown("---")
 
     # Seção 4: Entendendo a Curva ABC
-    st.markdown("### 📈 Entendendo a Curva ABC")
+    st.markdown("### Entendendo a Curva ABC")
     
     abc_col1, abc_col2, abc_col3 = st.columns(3)
     
@@ -164,7 +168,7 @@ def render_guide_tab():
     st.markdown("---")
 
     # Seção 5: Solução de Problemas
-    st.markdown("### 🛠️ Solução de Problemas Comuns")
+    st.markdown("### Solução de Problemas Comuns")
     
     with st.expander("O sistema não reconheceu meu arquivo"):
         st.markdown(
