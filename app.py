@@ -1271,6 +1271,90 @@ def render_front_card(title: str, desc: str, icon: str, itens: int, fat: float):
         """,
         unsafe_allow_html=True,
     )
+
+def render_logistics_section(full_pct: float, correios_pct: float, flex_pct: float, coleta_pct: float, outros_pct: float, period: str, **kwargs):
+    """Renderiza seção de logística com todas as formas de entrega"""
+    truck_svg = get_svg_icon("truck")
+    package_svg = get_svg_icon("package")
+    html = f"""
+<div class="section-box">
+  <div class="section-header">
+    <div class="section-icon">{truck_svg}</div>
+    <div>
+      <div class="section-title">Logística - Período {period}</div>
+      <div class="section-desc">Distribuição por forma de entrega</div>
+    </div>
+  </div>
+  <div class="logistics-grid">
+    <div class="logistics-card full">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Full</div>
+      <div class="logistics-value full">{full_pct:.1f}%</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill full" style="width: {full_pct}%"></div>
+      </div>
+    </div>
+    <div class="logistics-card correios">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Correios / Pontos</div>
+      <div class="logistics-value correios">{correios_pct:.1f}%</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill correios" style="width: {correios_pct}%"></div>
+      </div>
+    </div>
+    <div class="logistics-card flex">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Flex</div>
+      <div class="logistics-value flex">{flex_pct:.1f}%</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill flex" style="width: {flex_pct}%"></div>
+      </div>
+    </div>
+    <div class="logistics-card coleta">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Coleta</div>
+      <div class="logistics-value coleta">{coleta_pct:.1f}%</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill coleta" style="width: {coleta_pct}%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic_qty: int, period: str):
+    """Renderiza seção de vendas por publicidade"""
+    megaphone_svg = get_svg_icon("megaphone")
+    html = f"""
+<div class="ads-container">
+  <div class="ads-header">
+    <div class="ads-icon">{megaphone_svg}</div>
+    <div class="ads-title">Vendas por Publicidade - Período {period}</div>
+  </div>
+  <div class="ads-grid">
+    <div class="ads-metric ads">
+      <div class="ads-metric-value ads">{ads_pct:.1f}%</div>
+      <div class="ads-metric-label">Via Publicidade ({ads_qty:,} vendas)</div>
+    </div>
+    <div class="ads-metric organic">
+      <div class="ads-metric-value organic">{organic_pct:.1f}%</div>
+      <div class="ads-metric-label">Orgânicas ({organic_qty:,} vendas)</div>
+    </div>
+  </div>
+  <div class="ads-bar-container">
+    <div class="ads-bar-labels">
+      <span>Ads</span>
+      <span>Orgânico</span>
+    </div>
+    <div class="ads-bar">
+      <div class="ads-bar-ads" style="width: {ads_pct}%"></div>
+      <div class="ads-bar-organic" style="width: {organic_pct}%"></div>
+    </div>
+  </div>
+</div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
 # =========================
 # Helpers de formatação
 # =========================
