@@ -1,5 +1,4 @@
 import streamlit as st
-from ui.components.shared_ui import render_report_section, render_metric_grid
 
 def render_guide_tab():
     st.markdown(
@@ -13,7 +12,7 @@ def render_guide_tab():
     )
 
     # Seção 1: Fluxo de Trabalho
-    st.markdown(render_report_section("layout", "Fluxo de Trabalho Recomendado", "Siga estes passos para uma análise precisa", "purple"), unsafe_allow_html=True)
+    st.markdown("### 🚀 Fluxo de Trabalho Recomendado")
     
     col1, col2, col3 = st.columns(3)
     
@@ -45,9 +44,9 @@ def render_guide_tab():
     st.markdown("---")
 
     # Seção 2: Detalhes por Canal
-    st.markdown(render_report_section("📊", "Especificações por Canal", "Detalhes técnicos para cada marketplace", "blue"), unsafe_allow_html=True)
+    st.markdown("### 📊 Especificações por Canal")
     
-    with st.expander("Mercado Livre - Análise de Giro e Logística", expanded=True):
+    with st.expander("📦 Mercado Livre - Análise de Giro e Logística", expanded=True):
         col_ml_1, col_ml_2 = st.columns([2, 1])
         with col_ml_1:
             st.markdown(
@@ -71,16 +70,16 @@ def render_guide_tab():
                 """
             )
 
-    with st.expander("Shopee - Funil de Conversão e Rejeição"):
+    with st.expander("📱 Shopee - Funil de Conversão e Rejeição"):
         col_sh_1, col_sh_2 = st.columns([2, 1])
         with col_sh_1:
             st.markdown(
                 """
                 Na Shopee, o foco é o **comportamento do usuário** e o funil de vendas.
                 
-                *   **Arquivos Aceitos:** Você pode subir até 3 arquivos simultaneamente para uma análise completa.
-                *   **Performance de Produto:** (Obrigatório) Relatório detalhado por SKU para análise de conversão e rejeição.
-                *   **Vendas e Tráfego:** (Opcional) Relatórios de visão geral que permitem uma análise semanal mais precisa.
+                *   **Arquivos Aceitos:** Você pode subir até 3 arquivos (Performance de Produto, Vendas e Tráfego). O de **Performance de Produto** (parentskudetail) é o principal.
+                *   **Taxa de Rejeição:** Indica visitantes que saíram sem interagir. Se estiver alta, revise sua foto principal e título.
+                *   **Conversão de Carrinho:** Mostra se o cliente desiste no fechamento (pode ser frete caro ou falta de cupons).
                 *   **Análise Semanal:** O sistema monitora as últimas 5 semanas para detectar mudanças rápidas de tendência.
                 """
             )
@@ -89,24 +88,22 @@ def render_guide_tab():
                 """
                 **Onde baixar:**
                 1. Informações Gerenciais
-                2. Aba Produto > Performance
-                3. Aba Vendas > Visão Geral
-                4. Aba Tráfego > Visão Geral
-                5. Exportar todos em **Excel**
+                2. Aba Produto
+                3. Performance de Produto
+                4. Exportar (Excel)
                 """
             )
 
-    with st.expander("Amazon - Buy Box e Visibilidade"):
+    with st.expander("🛡️ Amazon - Buy Box e Visibilidade"):
         col_am_1, col_am_2 = st.columns([2, 1])
         with col_am_1:
             st.markdown(
                 """
                 A métrica vital na Amazon é a **Buy Box (Oferta em Destaque)**.
                 
-                *   **Multi-arquivos:** Você pode subir vários CSVs de "Relatórios de Negócios" e o sistema irá consolidar os dados automaticamente.
                 *   **Buy Box %:** Se estiver abaixo de 80%, o sistema sinaliza como perda de destaque. Abaixo de 20% é considerado nível crítico.
-                *   **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão (abaixo de 1%), o problema é a oferta.
-                *   **Análise Semanal:** Ao subir relatórios com datas, o sistema habilita o monitoramento de tendências das últimas 5 semanas.
+                *   **Sessões vs Conversão:** Se tem muitas sessões e pouca conversão (abaixo de 1%), o problema é a oferta. Se tem poucas sessões e alta conversão, o problema é o tráfego (SEO/Ads).
+                *   **Multi-arquivos:** Você pode subir vários CSVs de "Relatórios de Negócios" e o sistema irá consolidá-los.
                 """
             )
         with col_am_2:
@@ -115,34 +112,40 @@ def render_guide_tab():
                 **Onde baixar:**
                 1. Relatórios > Negócios
                 2. Detalhes de vendas e tráfego por ASIN
-                3. Selecionar período desejado
-                4. Exportar em **CSV**
+                3. Selecionar período
+                4. Exportar (CSV)
                 """
             )
 
     st.markdown("---")
 
     # Seção 3: Inteligência e Ações
-    st.markdown(render_report_section("lightbulb", "Inteligência e Ações Táticas", "Interpretação das recomendações automáticas", "amber"), unsafe_allow_html=True)
+    st.markdown("### 🧠 Inteligência e Ações Táticas")
+    st.markdown(
+        """
+        O sistema gera automaticamente **Cards Táticos** com base no comportamento de cada produto. 
+        Veja como interpretar as principais recomendações:
+        """
+    )
     
-    tac_metrics = [
-        ("Defesa de Curva A", "Proteger Faturamento", "🛡️", "rose"),
-        ("Ataque de Curva B", "Escalar Vendas", "⚔️", "green"),
-        ("Limpeza de Curva C", "Liberar Capital", "🧹", "blue")
-    ]
-    # Como render_metric_grid espera emojis para mapear para ícones, vamos ajustar o mapeamento no shared_ui ou usar os nomes de ícones diretamente se suportado.
-    # Vou usar render_metric_grid com os ícones mapeados.
+    tac1, tac2, tac3 = st.columns(3)
     
-    render_metric_grid([
-        ("Defesa de Curva A", "Proteger Faturamento", "star", "rose"),
-        ("Ataque de Curva B", "Escalar Vendas", "trending-up", "green"),
-        ("Limpeza de Curva C", "Liberar Capital", "package", "blue")
-    ])
+    with tac1:
+        st.markdown("🛡️ **Defesa de Curva A**")
+        st.caption("Produtos com alto faturamento mas queda de Buy Box ou estoque baixo. Ação imediata necessária para proteger o faturamento.")
+        
+    with tac2:
+        st.markdown("⚔️ **Ataque de Curva B**")
+        st.caption("Produtos com potencial de virar 'A'. Recomenda-se aumento de investimento em Ads ou melhoria de SEO.")
+        
+    with tac3:
+        st.markdown("🧹 **Limpeza de Curva C**")
+        st.caption("Produtos com baixo giro e estoque parado. Recomenda-se liquidação para liberar capital de giro.")
 
     st.markdown("---")
 
     # Seção 4: Entendendo a Curva ABC
-    st.markdown(render_report_section("bar-chart-3", "Entendendo a Curva ABC", "Classificação de relevância do catálogo", "green"), unsafe_allow_html=True)
+    st.markdown("### 📈 Entendendo a Curva ABC")
     
     abc_col1, abc_col2, abc_col3 = st.columns(3)
     
@@ -161,7 +164,7 @@ def render_guide_tab():
     st.markdown("---")
 
     # Seção 5: Solução de Problemas
-    st.markdown(render_report_section("⚠️", "Solução de Problemas Comuns", "Dúvidas frequentes e erros de processamento", "rose"), unsafe_allow_html=True)
+    st.markdown("### 🛠️ Solução de Problemas Comuns")
     
     with st.expander("O sistema não reconheceu meu arquivo"):
         st.markdown(

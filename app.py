@@ -51,7 +51,7 @@ st.markdown(
 
 
 # =========================
-# Estilo premium aprimorado v3.2 (Padronização de Ícones)
+# Estilo premium aprimorado v3.1
 # =========================
 st.markdown(
     """
@@ -145,23 +145,23 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
 }
 
 .metric-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   margin-bottom: 12px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   color: #ffffff !important;
 }
 .metric-icon svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
 }
 
 .metric-label {
@@ -180,6 +180,7 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   letter-spacing: -0.5px;
   color: #ffffff !important;
 }
+.metric-value { color: #ffffff !important; }
 
 /* ===== PERIOD SELECTOR ===== */
 .period-selector {
@@ -230,22 +231,15 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
 }
 
 .logistics-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 8px auto;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
   color: #ffffff !important;
 }
 .logistics-icon svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
 }
 .logistics-title {
   font-size: 0.85rem;
@@ -305,21 +299,14 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   margin-bottom: 16px;
 }
 .ads-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 1.2rem;
   color: #ffffff !important;
 }
 .ads-icon svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
 }
 .ads-title {
   font-size: 1.1rem;
@@ -401,9 +388,12 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .export-card:hover {
+  background: rgba(82, 121, 111, 0.15);
   border-color: rgba(82, 121, 111, 0.6);
-  box-shadow: 0 4px 16px rgba(82, 121, 111, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(82, 121, 111, 0.2);
 }
+
 .export-header {
   display: flex;
   align-items: center;
@@ -411,34 +401,51 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   margin-bottom: 16px;
 }
 .export-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: #a0a0a0;
 }
-.export-icon svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  width: 18px;
-  height: 18px;
-}
+.export-icon.defense { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.export-icon.correction { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.export-icon.attack { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.export-icon.cleanup { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.export-icon.opportunity { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.export-icon.combo { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+
 .export-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: #ffffff;
 }
 .export-desc {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   opacity: 0.6;
-  margin-bottom: 16px;
+}
+.export-stats {
+  display: flex;
+  gap: 20px;
+}
+.export-stat {
+  flex: 1;
+}
+.export-stat-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+.export-stat-label {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  text-transform: uppercase;
 }
 
-/* ===== TACTICAL CARDS ===== */
+/* ===== TACTICAL CARD ===== */
 .tactical-card {
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(12px);
@@ -455,62 +462,42 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(82, 121, 111, 0.2);
 }
+
 .tactical-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.tactical-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.tactical-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
-}
-.tactical-icon svg {
-  width: 20px;
-  height: 20px;
-  color: #ffffff !important;
-  stroke: #ffffff !important;
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 .tactical-title {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   color: #ffffff;
+  margin: 0;
 }
-.tactical-frente {
+.tactical-mlb {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  font-family: monospace;
+}
+.tactical-badge {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
 }
-.tactical-frente.defense { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-.tactical-frente.attack { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-.tactical-frente.cleanup { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
-.tactical-frente.correction { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-.tactical-frente.optimization { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.tactical-badge.defense { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.tactical-badge.correction { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.tactical-badge.attack { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.tactical-badge.cleanup { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+.tactical-badge.optimization { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
 
-.tactical-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 16px;
-}
-@media (max-width: 800px) {
-  .tactical-grid { grid-template-columns: repeat(2, 1fr); }
+.tactical-metrics {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 .tactical-metric {
   min-width: 80px;
@@ -568,19 +555,18 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   margin-bottom: 12px;
 }
 .front-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff !important;
 }
 .front-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   color: #ffffff !important;
   stroke: #ffffff !important;
 }
@@ -633,22 +619,22 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .report-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: #a0a0a0;
 }
-.report-icon svg {
-  width: 22px;
-  height: 22px;
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-}
+.report-icon.purple { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.report-icon.blue { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.report-icon.green { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.report-icon.amber { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.report-icon.rose { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
+.report-icon.cyan { background: rgba(255, 255, 255, 0.05); color: #a0a0a0; }
 
 .report-title {
   font-size: 1.4rem;
@@ -717,21 +703,9 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   gap: 14px;
 }
 .insight-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
-}
-.insight-icon svg {
-  width: 18px;
-  height: 18px;
-  color: #ffffff !important;
-  stroke: #ffffff !important;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  color: #a0a0a0;
 }
 .insight-title {
   font-size: 0.95rem;
@@ -763,21 +737,8 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   font-size: 0.9rem;
 }
 .front-pill-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
-}
-.front-pill-icon svg {
-  width: 14px;
-  height: 14px;
-  color: #ffffff !important;
-  stroke: #ffffff !important;
+  font-size: 1rem;
+  color: #a0a0a0;
 }
 .front-pill-count {
   font-weight: 900;
@@ -812,22 +773,23 @@ section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2, sectio
   margin-bottom: 16px;
 }
 .section-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff !important;
 }
 .section-icon svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
 }
+/* Cores residuais removidas */
 
 .section-title {
   font-size: 1.1rem;
@@ -917,21 +879,21 @@ div.stDownloadButton button:hover, div.stButton button:hover {
   border-bottom: 1px solid rgba(139, 92, 246, 0.15);
 }
 .sidebar-section-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff !important;
 }
 .sidebar-section-icon svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 .sidebar-section-title {
   font-size: 0.95rem;
@@ -1014,21 +976,19 @@ div.stDownloadButton button:hover, div.stButton button:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-.filter-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+}.insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff !important;
 }
-.filter-icon svg {
-  width: 18px;
-  height: 18px;
+.insight-icon svg {
+  width: 22px;
+  height: 22px;
   color: #ffffff !important;
   stroke: #ffffff !important;
 }
@@ -1076,33 +1036,437 @@ div.stDownloadButton button:hover, div.stButton button:hover {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
+.front-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+.front-btn.defense {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+.front-btn.correction {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.front-btn.attack {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+.front-btn.cleanup {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.3);
+}
+.front-btn.optimization {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+.front-btn-count {
+  background: rgba(255,255,255,0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+
+/* ===== SIDEBAR CARD ===== */
+.sidebar-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 0.5rem 0 1rem 0;
+}
+.sidebar-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #a5b4fc;
+}
+
+/* ===== FILTER BAR ===== */
+.filter-bar {
+  background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.filter-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #a5b4fc;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-container {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+.progress-bar.green { background: linear-gradient(90deg, #22c55e, #4ade80); }
+.progress-bar.amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.progress-bar.rose { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+
+/* ===== GRÁFICOS PLOTLY COM LIQUID GLASS ===== */
+.js-plotly-plot {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.js-plotly-plot:hover {
+  border-color: rgba(82, 121, 111, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(82, 121, 111, 0.15) !important;
+}
+
+/* ===== DATAFRAMES COM LIQUID GLASS ===== */
+.stDataFrame {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+/* ===== TABS COM HOVER VERDE MILITAR ===== */
+.stTabs [data-baseweb="tab"]:hover {
+  background: rgba(82, 121, 111, 0.15) !important;
+}
+.stTabs [aria-selected="true"] {
+  background: rgba(82, 121, 111, 0.25) !important;
+  border: 1px solid rgba(82, 121, 111, 0.6) !important;
+  color: #ffffff !important;
+}
+.stTabs [data-baseweb="tab"] {
+  color: #888888 !important;
+}
+
 </style>
-<script src="https://unpkg.com/lucide@latest"></script>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
+# Header principal
+st.markdown(
+    """
+<div class="hero-header">
+  <div class="hero-title">
+    <span style="margin-right:10px; vertical-align:middle; display:inline-flex; align-items:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+    </span>
+    CURVA ABC, DIAGNÓSTICO E AÇÕES
+  </div>
+  <div class="hero-subtitle">Análise inteligente para decisões rápidas por frente e prioridade</div>
+</div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
 # =========================
-# Funções de UI Auxiliares (Padronizadas)
+# Helpers visuais
 # =========================
-def section_header(title: str, desc: str, icon: str = "layout", color: str = "purple"):
+# Funções de UI movidas para ui/components/shared_ui.py
+
+def render_logistics_section(full_pct: float, correios_pct: float, flex_pct: float, coleta_pct: float, outros_pct: float, 
+                             full_fat: float, correios_fat: float, flex_fat: float, coleta_fat: float, outros_fat: float, period: str):
+    """Renderiza seção de logística com todas as formas de entrega"""
+    truck_svg = get_svg_icon("truck")
+    package_svg = get_svg_icon("package")
+    html = f"""
+<div class="section-box">
+  <div class="section-header">
+    <div class="section-icon">{truck_svg}</div>
+    <div>
+      <div class="section-title">Logística - Período {period}</div>
+      <div class="section-desc">Distribuição por forma de entrega</div>
+    </div>
+  </div>
+  <div class="logistics-grid">
+    <div class="logistics-card full">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Full</div>
+      <div class="logistics-value full">{full_pct:.1f}%</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #00f2ff; margin-bottom: 8px;">{br_money(full_fat)}</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill full" style="width: {full_pct}%"></div>
+      </div>
+    </div>
+    <div class="logistics-card correios">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Correios / Pontos</div>
+      <div class="logistics-value correios">{correios_pct:.1f}%</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">{br_money(correios_fat)}</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill correios" style="width: {correios_pct}%"></div>
+      </div>
+    </div>
+    <div class="logistics-card flex">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Flex</div>
+      <div class="logistics-value flex">{flex_pct:.1f}%</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #10b981; margin-bottom: 8px;">{br_money(flex_fat)}</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill flex" style="width: {flex_pct}%"></div>
+      </div>
+    </div>
+    <div class="logistics-card coleta">
+      <div class="logistics-icon">{package_svg}</div>
+      <div class="logistics-title">Coleta</div>
+      <div class="logistics-value coleta">{coleta_pct:.1f}%</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #8b5cf6; margin-bottom: 8px;">{br_money(coleta_fat)}</div>
+      <div class="logistics-bar">
+        <div class="logistics-bar-fill coleta" style="width: {coleta_pct}%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic_qty: int, ads_value: float, organic_value: float, period: str):
+    """Renderiza seção de vendas por publicidade"""
+    megaphone_svg = get_svg_icon("megaphone")
+    html = f"""
+<div class="ads-container">
+  <div class="ads-header">
+    <div class="ads-icon">{megaphone_svg}</div>
+    <div class="ads-title">Vendas por Publicidade - Período {period}</div>
+  </div>
+  <div class="ads-grid">
+    <div class="ads-metric ads">
+      <div class="ads-metric-value ads">{ads_pct:.1f}%</div>
+      <div class="ads-metric-label">Via Publicidade ({ads_qty:,} vendas)</div>
+      <div class="ads-metric-label" style="font-weight: 800; opacity: 1; margin-top: 8px; color: #fb923c;">{br_money(ads_value)}</div>
+    </div>
+    <div class="ads-metric organic">
+      <div class="ads-metric-value organic">{organic_pct:.1f}%</div>
+      <div class="ads-metric-label">Orgânicas ({organic_qty:,} vendas)</div>
+      <div class="ads-metric-label" style="font-weight: 800; opacity: 1; margin-top: 8px; color: #4ade80;">{br_money(organic_value)}</div>
+    </div>
+  </div>
+  <div class="ads-bar-container">
+    <div class="ads-bar-labels">
+      <span>Ads</span>
+      <span>Orgânico</span>
+    </div>
+    <div class="ads-bar">
+      <div class="ads-bar-ads" style="width: {ads_pct}%"></div>
+      <div class="ads-bar-organic" style="width: {organic_pct}%"></div>
+    </div>
+  </div>
+</div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+def render_abc_quadrant(df_abc_summary: pd.DataFrame, df_abc_details: pd.DataFrame, period: str):
+    """Renderiza o quadrante com 3 cards (Curva A, B, C) e botão de exportação com lista detalhada."""
+    section_header(f"Resumo Curva ABC - Período {period}", "Total de anúncios e faturamento por classificação", "📊", "green")
+    
+    cols = st.columns(3)
+    colors = {"Curva A": "#22c55e", "Curva B": "#3b82f6", "Curva C": "#f59e0b"}
+    icons = {"Curva A": "⭐", "Curva B": "📈", "Curva C": "📦"}
+    
+    for i, (_, row) in enumerate(df_abc_summary.iterrows()):
+        curva = row['Curva']
+        color = colors.get(curva, "#ffffff")
+        icon = icons.get(curva, "📦")
+        
+        with cols[i]:
+            st.markdown(f"""
+            <div class="logistics-card" style="border-top: 4px solid {color}; padding: 20px; text-align: center; background: rgba(255,255,255,0.02); border-radius: 16px;">
+                <div style="font-size: 1.5rem; margin-bottom: 8px;">{icon}</div>
+                <div class="logistics-title" style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: #ffffff;">{curva}</div>
+                <div class="logistics-value" style="font-size: 1.5rem; font-weight: 800; color: {color};">{br_money(row['Faturamento'])}</div>
+                <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 4px; color: #ffffff;">{br_int(row['Anúncios'])} Anúncios</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
+    
+    # Botão de exportação logo abaixo dos cards
+    st.download_button(
+        label=f"📥 Gerar Relatório Excel Curva ABC ({period})",
+        data=to_xlsx_bytes(df_abc_details),
+        file_name=f"relatorio_curva_abc_{period.replace('-', '_')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
+        key=f"btn_abc_{period}"
+    )
+
+def render_export_card(icon: str, title: str, desc: str, itens: int, fat: float, card_type: str):
+    """Renderiza card de exportação com estatísticas"""
     icon_map = {
-        "📅": "calendar",
-        "🎯": "target",
-        "🚚": "truck",
-        "📊": "bar-chart-3",
-        "🔍": "search",
-        "📦": "package",
-        "⚠️": "alert-triangle",
-        "🛡️": "star",
-        "⚔️": "trending-up",
+        "🛡️": "target",
+        "⚠️": "activity",
         "🚀": "trending-up",
         "🧹": "package",
-        "⚙️": "activity",
-        "💡": "lightbulb"
+        "⚙️": "star",
+        "📦": "package"
     }
-    icon_name = icon_map.get(icon, icon)
+    icon_name = icon_map.get(icon, "package")
+    svg = get_svg_icon(icon_name)
+    return f"""
+<div class='export-card'>
+  <div class='export-header'>
+    <div class='export-icon'>{svg}</div>
+    <div>
+      <div class='export-title'>{title}</div>
+      <div class='export-desc'>{desc}</div>
+    </div>
+  </div>
+  <div class='export-stats'>
+    <div class='export-stat'>
+      <div class='export-stat-value'>{br_int(itens)}</div>
+      <div class='export-stat-label'>Itens</div>
+    </div>
+    <div class='export-stat'>
+      <div class='export-stat-value'>{br_money(fat)}</div>
+      <div class='export-stat-label'>Faturamento</div>
+    </div>
+  </div>
+</div>
+    """
+
+def render_tactical_card(row: dict, frente: str):
+    """Renderiza card tático para um produto"""
+    frente_map = {
+        "DEFESA": "defense",
+        "CORREÇÃO": "correction",
+        "ATAQUE": "attack",
+        "LIMPEZA": "cleanup",
+        "OTIMIZAÇÃO": "optimization"
+    }
+    card_class = frente_map.get(frente, "optimization")
+    
+    return f"""
+<div class='tactical-card {card_class}'>
+  <div class='tactical-header'>
+    <div>
+      <p class='tactical-title'>{row.get('Título', '-')[:60]}...</p>
+      <p class='tactical-mlb'>{row.get('MLB', '-')}</p>
+    </div>
+    <span class='tactical-badge {card_class}'>{frente}</span>
+  </div>
+  <div class='tactical-metrics'>
+    <div class='tactical-metric'>
+      <div class='tactical-metric-value'>{row.get('Curva 0-30', '-')}</div>
+      <div class='tactical-metric-label'>Curva Atual</div>
+    </div>
+    <div class='tactical-metric'>
+      <div class='tactical-metric-value'>{row.get('Curva 31-60', '-')}</div>
+      <div class='tactical-metric-label'>Curva Anterior</div>
+    </div>
+    <div class='tactical-metric'>
+      <div class='tactical-metric-value'>{br_money(float(row.get('Fat. 0-30', 0))) if row.get('Fat. 0-30') else '-'}</div>
+      <div class='tactical-metric-label'>Fat. Atual</div>
+    </div>
+    <div class='tactical-metric'>
+      <div class='tactical-metric-value'>{br_int(row.get('Qntd 0-30', 0))}</div>
+      <div class='tactical-metric-label'>Qtd. Atual</div>
+    </div>
+  </div>
+  <div class='tactical-action'>{get_svg_icon("lightbulb")} {row.get('Ação sugerida', 'Sem ação definida')}</div>
+</div>
+    """
+
+def render_front_summary(fronts: list):
+    """Renderiza resumo das frentes. fronts = [(icon, count, label), ...]"""
+    html = '<div class="front-summary">'
+    icon_map = {
+        "🛡️": "target",
+        "⚠️": "activity",
+        "🚀": "trending-up",
+        "🧹": "package",
+        "⚙️": "star"
+    }
+    for icon, count, label in fronts:
+        icon_name = icon_map.get(icon, "package")
+        svg = get_svg_icon(icon_name)
+        html += f"""
+<div class='front-pill'>
+  <span class='front-pill-icon'>{svg}</span>
+  <span class='front-pill-count'>{count}</span>
+  <span class='front-pill-label'>{label}</span>
+</div>
+        """
+    html += '</div>'
+    return html
+
+# render_report_section movida para ui/components/shared_ui.py
+
+def render_kpi_highlight(kpis: list):
+    """Renderiza KPIs destacados. kpis = [(value, label, color), ...]"""
+    html = '<div class="kpi-grid">'
+    for value, label, color in kpis:
+        html += f"""
+<div class='kpi-box {color}'>
+  <div class='kpi-value {color}'>{value}</div>
+  <div class='kpi-label'>{label}</div>
+</div>
+        """
+    html += '</div>'
+    return html
+
+def render_insight_card(icon: str, title: str, text: str):
+    """Renderiza card de insight"""
+    icon_map = {
+        "💡": "lightbulb",
+        "📈": "trending-up",
+        "🎯": "target",
+        "📦": "package"
+    }
+    icon_name = icon_map.get(icon, "lightbulb")
+    svg = get_svg_icon(icon_name)
+    return f"""
+<div class='insight-card'>
+  <div class='insight-icon'>{svg}</div>
+  <div>
+    <div class='insight-title'>{title}</div>
+    <div class='insight-text'>{text}</div>
+  </div>
+</div>
+    """
+
+def section_header(title: str, desc: str, icon: str = "📊", color: str = "purple"):
+    """Renderiza header de seção"""
+    icon_map = {
+        "📊": "bar-chart-3",
+        "🎯": "target",
+        "📈": "trending-up",
+        "🚚": "truck"
+    }
+    icon_name = icon_map.get(icon, "layout")
     svg = get_svg_icon(icon_name)
     st.markdown(
         f"""
@@ -1121,131 +1485,16 @@ def section_header(title: str, desc: str, icon: str = "layout", color: str = "pu
 def section_footer():
     st.markdown("</div>", unsafe_allow_html=True)
 
-def render_kpi_highlight(kpis: list):
-    """Renderiza grid de KPIs destacados. kpis = [(value, label, color), ...]"""
-    html = '<div class="kpi-grid">'
-    for val, label, color in kpis:
-        html += f"""
-<div class='kpi-box {color}'>
-  <div class='kpi-value {color}'>{val}</div>
-  <div class='kpi-label'>{label}</div>
-</div>
-        """
-    html += '</div>'
-    return html
-
-def render_insight_card(icon: str, title: str, text: str):
-    icon_map = {"📊": "bar-chart-3", "💡": "lightbulb", "⚠️": "alert-triangle", "🔍": "search"}
-    icon_name = icon_map.get(icon, "lightbulb")
-    svg = get_svg_icon(icon_name)
-    return f"""
-<div class='insight-card'>
-  <div class='insight-icon'>{svg}</div>
-  <div>
-    <div class='insight-title'>{title}</div>
-    <div class='insight-text'>{text}</div>
-  </div>
-</div>
-    """
-
-def render_front_summary(pills: list):
-    """Renderiza resumo de frentes. pills = [(icon, count, label), ...]"""
-    html = '<div class="front-summary">'
-    icon_map = {"🛡️": "star", "⚠️": "alert-triangle", "🚀": "trending-up", "🧹": "package", "⚙️": "activity"}
-    for icon, count, label in pills:
-        icon_name = icon_map.get(icon, "activity")
-        svg = get_svg_icon(icon_name)
-        html += f"""
-<div class='front-pill'>
-  <div class='front-pill-icon'>{svg}</div>
-  <div class='front-pill-count'>{count}</div>
-  <div class='front-pill-label'>{label}</div>
-</div>
-        """
-    html += '</div>'
-    return html
-
-def render_tactical_card(row: dict, frente: str):
-    icon_map = {"DEFESA": "star", "CORREÇÃO": "alert-triangle", "ATAQUE": "trending-up", "LIMPEZA": "package", "OTIMIZAÇÃO": "activity"}
-    icon_name = icon_map.get(frente, "activity")
-    svg = get_svg_icon(icon_name)
-    frente_class = {"DEFESA": "defense", "CORREÇÃO": "correction", "ATAQUE": "attack", "LIMPEZA": "cleanup", "OTIMIZAÇÃO": "optimization"}.get(frente, "optimization")
-    
-    return f"""
-<div class='tactical-card'>
-  <div class='tactical-header'>
-    <div class='tactical-header-left'>
-      <div class='tactical-icon'>{svg}</div>
-      <div class='tactical-title'>{row['Título']}</div>
-    </div>
-    <div class='tactical-frente {frente_class}'>{frente}</div>
-  </div>
-  <div class='tactical-grid'>
-    <div class='tactical-metric'>
-      <div class='tactical-metric-value'>{br_money(row['Fat total'])}</div>
-      <div class='tactical-metric-label'>Faturamento</div>
-    </div>
-    <div class='tactical-metric'>
-      <div class='tactical-metric-value'>{row['Curva 0-30']}</div>
-      <div class='tactical-metric-label'>Curva Atual</div>
-    </div>
-    <div class='tactical-metric'>
-      <div class='tactical-metric-value'>{row['Qntd 0-30']}</div>
-      <div class='tactical-metric-label'>Qtd 30d</div>
-    </div>
-    <div class='tactical-metric'>
-      <div class='tactical-metric-value'>{row.get('Buy Box %', '-')}</div>
-      <div class='tactical-metric-label'>Buy Box</div>
-    </div>
-  </div>
-  <div class='tactical-action'>
-    {get_svg_icon('target')}
-    <span><b>Ação:</b> {row['Ação sugerida']}</span>
-  </div>
-</div>
-    """
-
-def render_export_card(title: str, desc: str, icon: str, df_seg: pd.DataFrame, filename: str):
-    icon_map = {"📦": "package", "⚠️": "alert-triangle", "🛡️": "star", "🚀": "trending-up", "🧹": "package", "⚙️": "activity"}
+def render_front_card(icon: str, title: str, desc: str, itens: int, fat: float, card_type: str, filename: str, df_seg: pd.DataFrame):
+    """Renderiza card de frente com download"""
+    icon_map = {
+        "🛡️": "target",
+        "⚠️": "activity",
+        "🚀": "trending-up",
+        "🧹": "package",
+        "⚙️": "star"
+    }
     icon_name = icon_map.get(icon, "package")
-    svg = get_svg_icon(icon_name)
-    itens = len(df_seg)
-    fat = df_seg['Fat total'].sum() if 'Fat total' in df_seg.columns else 0
-    
-    st.markdown(
-        f"""
-<div class='export-card'>
-  <div class='export-header'>
-    <div class='export-icon'>{svg}</div>
-    <div class='export-title'>{title}</div>
-  </div>
-  <div class='export-desc'>{desc}</div>
-  <div class='front-stats'>
-    <div class='front-stat'>
-      <div class='front-stat-value'>{br_int(itens)}</div>
-      <div class='front-stat-label'>Itens</div>
-    </div>
-    <div class='front-stat'>
-      <div class='front-stat-value'>{br_money(fat)}</div>
-      <div class='front-stat-label'>Faturamento</div>
-    </div>
-  </div>
-</div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.download_button(
-        f"📥 Baixar {title}",
-        data=to_xlsx_bytes(df_seg),
-        file_name=filename,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key=f"dl_{title}_{filename}",
-        use_container_width=True
-    )
-
-def render_front_card(title: str, desc: str, icon: str, itens: int, fat: float):
-    icon_map = {"🛡️": "star", "⚠️": "alert-triangle", "🚀": "trending-up", "🧹": "package", "⚙️": "activity"}
-    icon_name = icon_map.get(icon, "activity")
     svg = get_svg_icon(icon_name)
     st.markdown(
         f"""
@@ -1271,90 +1520,14 @@ def render_front_card(title: str, desc: str, icon: str, itens: int, fat: float):
         """,
         unsafe_allow_html=True,
     )
+    st.download_button(
+        f"📥 Baixar {title}",
+        data=to_xlsx_bytes(df_seg),
+        file_name=filename,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key=f"dl_{title}_{filename}",
+    )
 
-def render_logistics_section(full_pct: float, correios_pct: float, flex_pct: float, coleta_pct: float, outros_pct: float, period: str, **kwargs):
-    """Renderiza seção de logística com todas as formas de entrega"""
-    truck_svg = get_svg_icon("truck")
-    package_svg = get_svg_icon("package")
-    html = f"""
-<div class="section-box">
-  <div class="section-header">
-    <div class="section-icon">{truck_svg}</div>
-    <div>
-      <div class="section-title">Logística - Período {period}</div>
-      <div class="section-desc">Distribuição por forma de entrega</div>
-    </div>
-  </div>
-  <div class="logistics-grid">
-    <div class="logistics-card full">
-      <div class="logistics-icon">{package_svg}</div>
-      <div class="logistics-title">Full</div>
-      <div class="logistics-value full">{full_pct:.1f}%</div>
-      <div class="logistics-bar">
-        <div class="logistics-bar-fill full" style="width: {full_pct}%"></div>
-      </div>
-    </div>
-    <div class="logistics-card correios">
-      <div class="logistics-icon">{package_svg}</div>
-      <div class="logistics-title">Correios / Pontos</div>
-      <div class="logistics-value correios">{correios_pct:.1f}%</div>
-      <div class="logistics-bar">
-        <div class="logistics-bar-fill correios" style="width: {correios_pct}%"></div>
-      </div>
-    </div>
-    <div class="logistics-card flex">
-      <div class="logistics-icon">{package_svg}</div>
-      <div class="logistics-title">Flex</div>
-      <div class="logistics-value flex">{flex_pct:.1f}%</div>
-      <div class="logistics-bar">
-        <div class="logistics-bar-fill flex" style="width: {flex_pct}%"></div>
-      </div>
-    </div>
-    <div class="logistics-card coleta">
-      <div class="logistics-icon">{package_svg}</div>
-      <div class="logistics-title">Coleta</div>
-      <div class="logistics-value coleta">{coleta_pct:.1f}%</div>
-      <div class="logistics-bar">
-        <div class="logistics-bar-fill coleta" style="width: {coleta_pct}%"></div>
-      </div>
-    </div>
-  </div>
-</div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
-
-def render_ads_section(ads_pct: float, organic_pct: float, ads_qty: int, organic_qty: int, period: str):
-    """Renderiza seção de vendas por publicidade"""
-    megaphone_svg = get_svg_icon("megaphone")
-    html = f"""
-<div class="ads-container">
-  <div class="ads-header">
-    <div class="ads-icon">{megaphone_svg}</div>
-    <div class="ads-title">Vendas por Publicidade - Período {period}</div>
-  </div>
-  <div class="ads-grid">
-    <div class="ads-metric ads">
-      <div class="ads-metric-value ads">{ads_pct:.1f}%</div>
-      <div class="ads-metric-label">Via Publicidade ({ads_qty:,} vendas)</div>
-    </div>
-    <div class="ads-metric organic">
-      <div class="ads-metric-value organic">{organic_pct:.1f}%</div>
-      <div class="ads-metric-label">Orgânicas ({organic_qty:,} vendas)</div>
-    </div>
-  </div>
-  <div class="ads-bar-container">
-    <div class="ads-bar-labels">
-      <span>Ads</span>
-      <span>Orgânico</span>
-    </div>
-    <div class="ads-bar">
-      <div class="ads-bar-ads" style="width: {ads_pct}%"></div>
-      <div class="ads-bar-organic" style="width: {organic_pct}%"></div>
-    </div>
-  </div>
-</div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
 # =========================
 # Helpers de formatação
 # =========================
@@ -2198,9 +2371,6 @@ def frente_bucket(idx):
 
 plan["Frente"] = [frente_bucket(i) for i in plan.index]
 
-# Contagem de produtos por frente para os filtros
-all_front_counts = plan["Frente"].value_counts().to_dict()
-
 # Alertas de Buybox para Amazon
 if st.session_state.get('canal') == 'Amazon':
     buybox_alerts = get_amazon_buybox_alerts(df_f)
@@ -2394,28 +2564,28 @@ with tab1:
     dist_period_df = pd.DataFrame({"Curva": dist_period.index, "Anúncios": dist_period.values})
     
     # Métricas do período
-    # Métricas do período selecionado
     render_metric_grid([
-        (f"Faturamento {selected_period}", br_money(period_fat), "dollar-sign", "green"),
-        (f"Quantidade {selected_period}", br_int(period_qty), "package", "blue"),
-        (f"Ticket Médio {selected_period}", br_money(period_tm), "target", "amber"),
-        (f"Curva A ({selected_period})", br_int(dist_period.get("A", 0)), "star", "purple"),
+        (f"Faturamento {selected_period}", br_money(period_fat), "💰", "green"),
+        (f"Quantidade {selected_period}", br_int(period_qty), "📦", "blue"),
+        (f"Ticket Médio {selected_period}", br_money(period_tm), "🎯", "amber"),
+        (f"Curva A ({selected_period})", br_int(dist_period.get("A", 0)), "⭐", "purple"),
     ])
 
     left, right = st.columns([1.2, 1])
 
     with left:
-        section_header("Resumo por Período", "Visão consolidada das 4 janelas de tempo", "calendar", "purple")
+        section_header("Resumo por Período", "Visão consolidada das 4 janelas de tempo", "📅", "purple")
         show = kpi_df.copy()
         show["Qtd"] = show["Qtd"].map(br_int)
         show["Faturamento"] = show["Faturamento"].map(br_money)
         show["Ticket médio"] = show["Ticket médio"].apply(lambda x: br_money(x) if pd.notna(x) else "-")
         
+        # Destacar período selecionado
         st.dataframe(show, use_container_width=True, hide_index=True, height=220)
         section_footer()
 
     with right:
-        section_header(f"Distribuição de Curvas ({selected_period})", f"Período selecionado: {selected_period} dias", "target", "blue")
+        section_header(f"Distribuição de Curvas ({selected_period})", f"Período selecionado: {selected_period} dias", "🎯", "blue")
         colors_map = {"A": "#22c55e", "B": "#3b82f6", "C": "#f59e0b", "-": "#6b7280"}
         fig = px.bar(
             dist_period_df, 
@@ -2435,11 +2605,43 @@ with tab1:
         st.plotly_chart(fig, use_container_width=True)
         section_footer()
 
-    # Quadrante Curva ABC removido por erro de referência inexistente
+    # Quadrante Curva ABC (Novo)
+    abc_rows = []
+    # Detalhes para o Excel
+    df_abc_details = df_f[df_f[curve_col].isin(["A", "B", "C"])].copy()
+    # Selecionar e renomear colunas para o padrão solicitado
+    export_cols = {
+        "MLB": "MLB",
+        "Título": "Título",
+        qty_col: "Qtd Vendida",
+        fat_col: "Faturamento",
+        curve_col: "Curva"
+    }
+    df_abc_details = df_abc_details[list(export_cols.keys())].rename(columns=export_cols)
+    # Calcular Ticket Médio (Valor de venda unitário)
+    df_abc_details["Ticket Médio"] = df_abc_details.apply(lambda r: safe_div(r["Faturamento"], r["Qtd Vendida"]), axis=1)
+    # Garantir que a quantidade seja inteiro
+    df_abc_details["Qtd Vendida"] = df_abc_details["Qtd Vendida"].fillna(0).astype(int)
+    # Reordenar colunas para o Ticket Médio ficar após a Qtd Vendida
+    final_cols = ["MLB", "Título", "Qtd Vendida", "Ticket Médio", "Faturamento", "Curva"]
+    df_abc_details = df_abc_details[final_cols].sort_values(["Curva", "Faturamento"], ascending=[True, False])
+
+    for curva in ["A", "B", "C"]:
+        mask = df_f[curve_col] == curva
+        abc_rows.append({
+            "Curva": f"Curva {curva}",
+            "Anúncios": int(mask.sum()),
+            "Faturamento": float(df_f.loc[mask, fat_col].sum())
+        })
+    df_abc_summary = pd.DataFrame(abc_rows)
+    
+    render_abc_quadrant(df_abc_summary, df_abc_details, selected_period)
+    section_footer()
     st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
 
     # Seções específicas por canal
     if st.session_state.get('canal') == 'Mercado Livre':
+        # Seção de Logística (apenas Mercado Livre)
         if not df_logistics.empty:
             log_row = df_logistics[df_logistics['periodo'] == selected_period]
             if not log_row.empty:
@@ -2458,25 +2660,379 @@ with tab1:
                     period=selected_period
                 )
         else:
+            # Fallback para cálculo antigo se não tiver dados de logística
             if all(c in df_f.columns for c in [f"Share Full Qtd {selected_period}", f"Share Full Fat {selected_period}"]):
-                section_header(f"Logística no Período {selected_period}", "Distribuição FULL vs NÃO FULL", "truck", "cyan")
-                # ... (cálculos mantidos)
+                section_header(f"Logística no Período {selected_period}", "Distribuição FULL vs NÃO FULL", "🚚", "cyan")
+                qtd_total = float(df_f[qty_col].sum())
+                fat_total = float(df_f[fat_col].sum())
+                share_full_qtd = (
+                    (df_f[qty_col] * df_f[f"Share Full Qtd {selected_period}"]).sum() / qtd_total
+                    if qtd_total > 0 else 0.0
+                )
+                share_full_fat = (
+                    (df_f[fat_col] * df_f[f"Share Full Fat {selected_period}"]).sum() / fat_total
+                    if fat_total > 0 else 0.0
+                )
+                dom = "FULL" if share_full_qtd >= 0.5 else "NÃO FULL"
+                
+                render_metric_grid([
+                    ("FULL por Quantidade", pct(share_full_qtd, 1), "📦", "cyan"),
+                    ("FULL por Faturamento", pct(share_full_fat, 1), "💵", "green"),
+                    ("Logística Dominante", dom, "🏆", "purple" if dom == "FULL" else "amber"),
+                ])
                 section_footer()
 
+        # Seção de Vendas por Publicidade (apenas Mercado Livre)
+        if not df_ads.empty:
+            ads_row = df_ads[df_ads['periodo'] == selected_period]
+            if not ads_row.empty:
+                ads_row = ads_row.iloc[0]
+                render_ads_section(
+                    ads_pct=ads_row['ads_pct'],
+                    organic_pct=ads_row['organic_pct'],
+                    ads_qty=int(ads_row['ads_qty']),
+                    organic_qty=int(ads_row['organic_qty']),
+                    ads_value=float(ads_row.get('ads_value', 0)),
+                    organic_value=float(ads_row.get('organic_value', 0)),
+                    period=selected_period
+                )
+    
+    elif st.session_state.get('canal') == 'Shopee':
+        # Seções específicas da Shopee
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Funil de Conversão
+        render_shopee_conversion_funnel(df_f)
+        
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Métricas de Engajamento
+        render_shopee_engagement_metrics(df_f)
+        
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Top 5 Produtos com Maior Taxa de Rejeição
+        render_shopee_top_rejection_rate(df_f)
+        
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Distribuição ABC
+        render_shopee_abc_distribution(df_f)
+        
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Top Produtos
+        render_shopee_top_products(df_f, top_n=10)
+
+    elif st.session_state.get('canal') == 'Amazon':
+        # Seções específicas da Amazon
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Funil de Conversão
+        from ui.components.amazon_components import render_amazon_conversion_metrics, render_amazon_engagement_metrics
+        render_amazon_conversion_metrics(df_f)
+        
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Engajamento e Tráfego
+        render_amazon_engagement_metrics(df_f)
+        
+        st.markdown('<div style="height:2rem"></div>', unsafe_allow_html=True)
+        
+        # Performance de Buybox
+        render_amazon_buybox_metrics(df_f)
+
+    section_header("Faturamento por Curva e Período", "Comparativo entre as janelas de tempo", "📊", "green")
+    rev_rows = []
+    for p, cc, qq, ff in periods:
+        grp = df_f.groupby(cc)[ff].sum()
+        for curva in ["A", "B", "C", "-"]:
+            rev_rows.append({"Período": p, "Curva": curva, "Faturamento": float(grp.get(curva, 0.0))})
+    rev_df = pd.DataFrame(rev_rows)
+    fig2 = px.bar(
+        rev_df, 
+        x="Período", 
+        y="Faturamento", 
+        color="Curva", 
+        barmode="group",
+        color_discrete_map=colors_map,
+        category_orders={"Período": ["91-120", "61-90", "31-60", "0-30"]}  # Ordem decrescente
+    )
+    fig2.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=20, r=20, t=20, b=20),
+        font=dict(color='#9ca3af'),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+    section_footer()
+
+    section_header("Evolução do Ticket Médio", "Tendência ao longo dos períodos", "📈", "amber")
+    tm_df = kpi_df.copy()
+    tm_df["Ticket médio"] = tm_df["Ticket médio"].fillna(0.0)
+    fig3 = px.line(
+        tm_df, 
+        x="Período", 
+        y="Ticket médio", 
+        markers=True,
+        category_orders={"Período": ["91-120", "61-90", "31-60", "0-30"]}  # Ordem decrescente
+    )
+    fig3.update_traces(line_color='#f59e0b', marker_color='#fbbf24', line_width=3, marker_size=10)
+    fig3.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=20, r=20, t=20, b=20),
+        font=dict(color='#9ca3af')
+    )
+    st.plotly_chart(fig3, use_container_width=True)
+    st.info(tm_reading)
+    section_footer()
+
+    st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
+    
+    section_header("Ações por Frente", "Visão estratégica das prioridades (Período: " + selected_period + " dias)", "🎯", "rose")
+    
+    def _front_agg(df_seg: pd.DataFrame, period_fat_col: str):
+        """Agrega dados de frente respeitando o período selecionado."""
+        if df_seg is None or len(df_seg) == 0:
+            return 0, 0.0
+        fat = float(df_seg[period_fat_col].sum()) if period_fat_col in df_seg.columns else 0.0
+        return int(len(df_seg)), fat
+
+    # Recalcular segmentações com base no período selecionado
+    if st.session_state.get('canal') == 'Shopee':
+        # Para Shopee, usa apenas o período 0-30
+        anchors_period = df_f[
+            (df_f["Curva 0-30"] == "A")
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        inactivate_period = df_f[
+            (df_f["Qntd 0-30"] == 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        revitalize_period = df_f[
+            (df_f["Curva 0-30"].isin(["C", "-"])) &
+            (df_f["Qntd 0-30"] > 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        rise_to_A_period = df_f[
+            (df_f["Curva 0-30"] == "A") &
+            (df_f["Qntd 0-30"] > 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        opp_50_60_period = df_f[
+            (df_f["Curva 0-30"] == "B")
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        drop_alert_period = df_f[
+            (df_f["Curva 0-30"].isin(["C", "-"])) &
+            (df_f["TM total"] > df_f["TM total"].median())
+        ].copy()
+        
+        if len(drop_alert_period) > 0:
+            drop_alert_period["Perda estimada"] = drop_alert_period["TM total"] * 10
+            drop_alert_period = drop_alert_period.sort_values("Perda estimada", ascending=False)
+    else:
+        # Para Mercado Livre, usa o período selecionado
+        anchors_period = df_f[
+            (df_f[curve_col] == "A") &
+            (df_f["Curva 31-60"].isin(["A", "B"])) &
+            (df_f["Curva 61-90"].isin(["A", "B"]))
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        inactivate_period = df_f[
+            (df_f[qty_col] == 0) &
+            (df_f["Qntd 31-60"] == 0) &
+            (df_f["Qntd 61-90"] == 0)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        revitalize_period = df_f[
+            (df_f["Curva 31-60"].isin(["A", "B"])) &
+            (df_f[curve_col].isin(["C", "-"]))
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        rise_to_A_period = df_f[
+            (df_f["Curva 31-60"].isin(["B", "C"])) &
+            (df_f[curve_col] == "A")
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        opp_50_60_period = df_f[
+            (df_f[curve_col] == "B") &
+            (df_f[qty_col] >= df_f["Qntd 31-60"] * 1.1)
+        ].sort_values("Fat total", ascending=False).copy()
+        
+        drop_alert_period = df_f[
+            (df_f["Curva 31-60"].isin(["A", "B"])) &
+            (df_f[curve_col].isin(["C", "-"]))
+        ].copy()
+        
+        if len(drop_alert_period) > 0:
+            drop_alert_period["Fat anterior ref"] = drop_alert_period[["Fat. 31-60", "Fat. 61-90"]].max(axis=1)
+            drop_alert_period["Perda estimada"] = drop_alert_period["Fat anterior ref"] - drop_alert_period[fat_col]
+            drop_alert_period = drop_alert_period.sort_values("Perda estimada", ascending=False)
+
+    crescimento_period = pd.concat([ensure_cols(rise_to_A_period, plan.columns), ensure_cols(opp_50_60_period, plan.columns)], ignore_index=True)
+    crescimento_period = crescimento_period.drop_duplicates(subset=[c for c in ["MLB", "SKU", "# de anúncio", "Título"] if c in crescimento_period.columns])
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        itens, fat = _front_agg(anchors_period, fat_col)
+        render_front_card("🛡️", "Defesa - Âncoras", "Proteja estoque e conversão", itens, fat, "defense", "ancoras.xlsx", anchors_period)
+        
+        itens, fat = _front_agg(drop_alert_period, fat_col)
+        render_front_card("⚠️", "Correção - Fuga de Receita", "Produtos que caíram", itens, fat, "correction", "fuga_de_receita.xlsx", drop_alert_period)
+
+    with col2:
+        itens, fat = _front_agg(crescimento_period, fat_col)
+        render_front_card("🚀", "Ataque - Crescimento", "Produtos em ascensão", itens, fat, "attack", "crescimento.xlsx", crescimento_period)
+        
+        itens, fat = _front_agg(inactivate_period, fat_col)
+        render_front_card("🧹", "Limpeza - Parados", "Produtos para cortar ou liquidar", itens, fat, "cleanup", "parados_inativar.xlsx", inactivate_period)
+
+    section_footer()
+
 # =========================
-# TAB 3: Plano Tático
+# TAB 2: Listas e Exportação (MELHORADA)
+# =========================
+with tab2:
+    st.markdown(render_report_section("package", "Central de Exportação", f"Baixe listas segmentadas para ação imediata - Período: {selected_period} dias", "blue"), unsafe_allow_html=True)
+    
+    # Função para adicionar planos de ação aos exports
+    def enrich_df(base_df: pd.DataFrame) -> pd.DataFrame:
+        result = base_df.copy()
+        # Adicionar colunas de plano do dataframe plan
+        plan_data = plan[["MLB", "Ação sugerida", "Plano 7 dias", "Plano 15 dias", "Plano 30 dias"]].drop_duplicates("MLB")
+        result = result.merge(plan_data, on="MLB", how="left", suffixes=("", "_plan"))
+        return result
+
+    # Usar as segmentações do período selecionado (calculadas no dashboard)
+    anchors_export = enrich_df(anchors_period.copy())
+    inactivate_export = enrich_df(inactivate_period.copy())
+    revitalize_export = enrich_df(revitalize_period.copy())
+    opp_export = enrich_df(opp_50_60_period.copy())
+    drop_export = enrich_df(drop_alert_period.copy())
+    
+    # Para combo, usar a mesma lógica do período
+    if st.session_state.get('canal') == 'Shopee':
+        combo_period = df_f[
+            (df_f["Curva 0-30"] == "-") &
+            (df_f["Fat total"] > 0)
+        ].sort_values("TM total", ascending=False).copy()
+    else:
+        combo_period = df_f[
+            (df_f[curve_col] == "-") &
+            (df_f["Fat total"] > 0)
+        ].sort_values("TM total", ascending=False).copy()
+    
+    combo_export = enrich_df(combo_period.copy())
+
+    # Colunas base + planos de ação
+    plan_cols = ["Ação sugerida", "Plano 7 dias", "Plano 15 dias", "Plano 30 dias"]
+    
+    # Definir colunas específicas para cada tipo de exportação com base no período selecionado
+    anchors_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}","Curva 0-30","Curva 31-60","Curva 61-90","Curva 91-120"] + plan_cols
+    inactivate_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}","Curva 0-30","Qntd 0-30","Qntd 31-60","Qntd 61-90"] + plan_cols
+    revitalize_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}","Curva 31-60","Curva 0-30",f"Qntd {selected_period}","Qntd 0-30"] + plan_cols
+    opp_cols = ["MLB","Título",f"Fat. {selected_period}","Curva 0-30",f"Qntd {selected_period}","Curva 31-60","Qntd 31-60"] + plan_cols
+    drop_cols = ["MLB","Título","Curva 31-60","Curva 61-90","Curva 0-30",f"Fat. {selected_period}","Perda estimada"] + plan_cols
+    combo_cols = ["MLB","Título",f"Fat. {selected_period}",f"Qntd {selected_period}"] + plan_cols
+
+    anchors_export = ensure_cols(anchors_export, anchors_cols)
+    inactivate_export = ensure_cols(inactivate_export, inactivate_cols)
+    revitalize_export = ensure_cols(revitalize_export, revitalize_cols)
+    opp_export = ensure_cols(opp_export, opp_cols)
+    drop_export = ensure_cols(drop_export, drop_cols)
+    combo_export = ensure_cols(combo_export, combo_cols)
+
+    # Calcular faturamentos com base no período selecionado
+    def get_fat(df_exp):
+        if f"Fat. {selected_period}" in df_exp.columns:
+            return float(df_exp[f"Fat. {selected_period}"].sum())
+        elif "Fat total" in df_exp.columns:
+            return float(df_exp["Fat total"].sum())
+        elif "Fat. 0-30" in df_exp.columns:
+            return float(df_exp["Fat. 0-30"].sum())
+        return 0.0
+
+    # Grid de cards de exportação
+    st.markdown('<div class="export-grid">', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(render_export_card("🛡️", "Âncoras", "Produtos estáveis em curva A", len(anchors_export), get_fat(anchors_export), "defense"), unsafe_allow_html=True)
+        st.download_button("📥 Baixar Excel", data=to_xlsx_bytes(anchors_export), file_name="ancoras.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="exp_anc", use_container_width=True)
+    
+    with col2:
+        st.markdown(render_export_card("⚠️", "Fuga de Receita", "Produtos que caíram de curva", len(drop_export), get_fat(drop_export), "correction"), unsafe_allow_html=True)
+        st.download_button("📥 Baixar Excel", data=to_xlsx_bytes(drop_export), file_name="fuga_receita.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="exp_drop", use_container_width=True)
+    
+    with col3:
+        st.markdown(render_export_card("🚀", "Crescimento", "Produtos em ascensão", len(opp_export), get_fat(opp_export), "attack"), unsafe_allow_html=True)
+        st.download_button("📥 Baixar Excel", data=to_xlsx_bytes(opp_export), file_name="crescimento.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="exp_opp", use_container_width=True)
+
+    col4, col5, col6 = st.columns(3)
+    
+    with col4:
+        st.markdown(render_export_card("🧹", "Inativar", "Produtos sem giro", len(inactivate_export), get_fat(inactivate_export), "cleanup"), unsafe_allow_html=True)
+        st.download_button("📥 Baixar Excel", data=to_xlsx_bytes(inactivate_export), file_name="inativar.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="exp_ina", use_container_width=True)
+    
+    with col5:
+        st.markdown(render_export_card("🔄", "Revitalizar", "Produtos para recuperar", len(revitalize_export), get_fat(revitalize_export), "opportunity"), unsafe_allow_html=True)
+        st.download_button("📥 Baixar Excel", data=to_xlsx_bytes(revitalize_export), file_name="revitalizar.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="exp_rev", use_container_width=True)
+    
+    with col6:
+        st.markdown(render_export_card("🎁", "Combos/Liquidação", "Produtos para kits", len(combo_export), get_fat(combo_export), "combo"), unsafe_allow_html=True)
+        st.download_button("📥 Baixar Excel", data=to_xlsx_bytes(combo_export), file_name="combos.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", key="exp_combo", use_container_width=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Preview expandido
+    st.markdown('<div style="height:1.5rem"></div>', unsafe_allow_html=True)
+    
+    with st.expander("PRÉVIA: FUGA DE RECEITA (TOP 20 POR PERDA ESTIMADA)", expanded=False):
+        show = drop_export.head(20).copy()
+        if not show.empty:
+            if "Fat anterior ref" in show.columns:
+                show["Fat anterior ref"] = show["Fat anterior ref"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+            if "Fat. 0-30" in show.columns:
+                show["Fat. 0-30"] = show["Fat. 0-30"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+            if "Perda estimada" in show.columns:
+                show["Perda estimada"] = show["Perda estimada"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+
+        st.dataframe(show, use_container_width=True, hide_index=True, height=450)
+
+    with st.expander("PRÉVIA: ÂNCORAS (TOP 20 POR FATURAMENTO)", expanded=False):
+        show = anchors_export.head(20).copy()
+        if not show.empty:
+            if "Fat total" in show.columns:
+                show["Fat total"] = show["Fat total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+            if "TM total" in show.columns:
+                show["TM total"] = show["TM total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+        st.dataframe(show, use_container_width=True, hide_index=True, height=450)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# =========================
+# TAB 3: Plano Tático (MELHORADA v2)
 # =========================
 with tab3:
     st.markdown(render_report_section("layout", "Plano Tático por Produto", "Ações detalhadas para 15 e 30 dias", "purple"), unsafe_allow_html=True)
 
+    # Contagem de frentes para exibir nos botões
+    fronts = sorted(plan["Frente"].unique().tolist())
+    all_front_counts = plan["Frente"].value_counts()
+    
     # Container de filtros premium
     st.markdown(f"""
 <div class="filter-container">
   <div class="filter-header">
     <div class="filter-header-left">
-      <div class="filter-icon">{get_svg_icon('target')}</div>
+      <div class="filter-icon">🎯</div>
       <div>
-        <div class="filter-main-title">CENTRAL DE FILTROS</div>
+        <div class="filter-main-title">🎯CENTRAL DE FILTROS</div>
         <div class="filter-subtitle">Refine sua análise por frente, faturamento e busca</div>
       </div>
     </div>
@@ -2488,22 +3044,129 @@ with tab3:
     # Seleção de frentes com botões visuais
     st.markdown("**SELECIONE AS FRENTES:**")
     
+    # Criar botões de frente com contagem
     front_cols = st.columns(5)
-    front_icons = {"DEFESA": "star", "CORREÇÃO": "alert-triangle", "ATAQUE": "trending-up", "LIMPEZA": "package", "OTIMIZAÇÃO": "activity"}
+    front_icons = {"DEFESA": "🛡️", "CORREÇÃO": "⚠️", "ATAQUE": "🚀", "LIMPEZA": "🧹", "OTIMIZAÇÃO": "⚙️"}
+    front_colors = {"DEFESA": "defense", "CORREÇÃO": "correction", "ATAQUE": "attack", "LIMPEZA": "cleanup", "OTIMIZAÇÃO": "optimization"}
     
     front_filter = []
     for i, frente in enumerate(["DEFESA", "CORREÇÃO", "ATAQUE", "LIMPEZA", "OTIMIZAÇÃO"]):
         with front_cols[i]:
             count = int(all_front_counts.get(frente, 0))
-            if st.checkbox(f"{frente} ({count})", value=True, key=f"front_{frente}"):
+            icon = front_icons.get(frente, "")
+            if st.checkbox(f"{icon} {frente} ({count})", value=True, key=f"front_{frente}"):
                 front_filter.append(frente)
     
-    # ... (filtros e métricas mantidos)
+    st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
+    
+    # Linha de filtros adicionais
+    col1, col2, col3 = st.columns([1.5, 2, 1])
+    
+    with col1:
+        st.markdown("**FATURAMENTO MÍNIMO:**")
+        min_fat = st.number_input(
+            "Fat. mínimo",
+            min_value=0.0,
+            value=0.0,
+            step=100.0,
+            label_visibility="collapsed",
+            format="%.2f"
+        )
+    
+    with col2:
+        st.markdown("**BUSCAR PRODUTO:**")
+        text_search = st.text_input(
+            "Buscar",
+            value="",
+            label_visibility="collapsed",
+            placeholder="Digite MLB ou nome do produto..."
+        )
+    
+    with col3:
+        st.markdown("**VISUALIZAÇÃO:**")
+        view_mode = st.selectbox(
+            "Modo",
+            ["Cards", "Tabela"],
+            label_visibility="collapsed"
+        )
+
+    # Aplicar filtros
+    view = plan[plan["Frente"].isin(front_filter)].copy() if front_filter else plan.copy()
+    view = view[view["Fat total"] >= float(min_fat)].copy()
+
+    if text_search:
+        text_search = text_search.strip().lower()
+        view = view[
+            view["MLB"].astype(str).str.lower().str.contains(text_search) |
+            view["Título"].astype(str).str.lower().str.contains(text_search)
+        ].copy()
+
+    # Resumo das frentes filtradas
+    front_counts = view["Frente"].value_counts()
+    
+    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+    
+    # Métricas resumidas
+    res_cols = st.columns(4)
+    with res_cols[0]:
+        st.metric("PRODUTOS FILTRADOS", f"{len(view):,}")
+    with res_cols[1]:
+        st.metric("FAT. TOTAL", br_money(view["Fat total"].sum()))
+    with res_cols[2]:
+        st.metric("QTD. TOTAL", f"{int(view['Qtd total'].sum()):,}")
+    with res_cols[3]:
+        avg_tm = view["TM total"].mean() if len(view) > 0 else 0
+        st.metric("TM MÉDIO", br_money(avg_tm))
+    
+    st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
+
+    cols = [
+        "MLB", "Título", "Frente",
+        "Curva 31-60", "Curva 0-30",
+        "Qntd 31-60", "Qntd 0-30",
+        "Fat. 0-30", "Fat total", "TM total",
+        "Buy Box %",
+        "Ação sugerida", "Plano 7 dias", "Plano 15 dias", "Plano 30 dias"
+    ]
+
+    view_show = ensure_cols(view.sort_values("Fat total", ascending=False), cols)
+
+    # Botão de download
+    st.download_button(
+        "📥 Baixar Excel do Plano Filtrado",
+        data=to_xlsx_bytes(view_show),
+        file_name="plano_tatico.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+
+    st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
+
+    if view_mode == "Cards":
+        # Visualização em cards
+        for idx, row in view_show.head(20).iterrows():
+            st.markdown(render_tactical_card(row.to_dict(), row.get("Frente", "OTIMIZAÇÃO")), unsafe_allow_html=True)
+        
+        if len(view_show) > 20:
+            st.info(f"Mostrando 20 de {len(view_show)} produtos. Use os filtros para refinar ou baixe o CSV completo.")
+    else:
+        # Visualização em tabela
+        show = view_show.copy()
+        show["Fat. 0-30"] = show["Fat. 0-30"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+        show["Fat total"] = show["Fat total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+        show["TM total"] = show["TM total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+        if "Buy Box %" in show.columns:
+            show["Buy Box %"] = show["Buy Box %"].apply(lambda x: f"{float(x):.1f}%" if pd.notna(x) and x != "-" else "-")
+
+        st.dataframe(show, use_container_width=True, hide_index=True, height=600)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # =========================
-# TAB 4: Relatório Estratégico
+# TAB 4: Relatório Estratégico (MELHORADA)
 # =========================
 with tab4:
+    # Seção 1: Diagnóstico Macro
     st.markdown(render_report_section("search", "Diagnóstico Macro", "Visão geral da saúde do catálogo", "purple"), unsafe_allow_html=True)
     
     # KPIs destacados
@@ -2516,39 +3179,95 @@ with tab4:
         unsafe_allow_html=True
     )
     
-    st.markdown(render_insight_card("bar-chart-3", "Análise do Ticket Médio", tm_reading), unsafe_allow_html=True)
+    # Insight do ticket médio
+    st.markdown(render_insight_card("📊", "Análise do Ticket Médio", tm_reading), unsafe_allow_html=True)
     
-    # ... (tabelas mantidas)
+    # Distribuição de curvas
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("#### Distribuição de Curvas (0-30)")
+        st.dataframe(dist_0_30_df, use_container_width=True, hide_index=True, height=180)
+    
+    with col2:
+        st.markdown("#### Evolução por Período")
+        show_kpi = kpi_df.copy()
+        show_kpi["Qtd"] = show_kpi["Qtd"].map(br_int)
+        show_kpi["Faturamento"] = show_kpi["Faturamento"].map(br_money)
+        show_kpi["Ticket médio"] = show_kpi["Ticket médio"].apply(lambda x: br_money(x) if pd.notna(x) else "-")
+        st.dataframe(show_kpi, use_container_width=True, hide_index=True, height=180)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
     # Seção 2: Segmentação
     st.markdown(render_report_section("package", "Segmentação de Produtos", "Análise por categoria estratégica", "blue"), unsafe_allow_html=True)
     
     # Resumo das frentes
+    front_counts_all = plan["Frente"].value_counts()
     st.markdown(
         render_front_summary([
-            ("🛡️", int(all_front_counts.get("DEFESA", 0)), "DEFESA"),
-            ("⚠️", int(all_front_counts.get("CORREÇÃO", 0)), "CORREÇÃO"),
-            ("🚀", int(all_front_counts.get("ATAQUE", 0)), "ATAQUE"),
-            ("🧹", int(all_front_counts.get("LIMPEZA", 0)), "LIMPEZA"),
-            ("⚙️", int(all_front_counts.get("OTIMIZAÇÃO", 0)), "OTIMIZAÇÃO"),
+            ("🛡️", int(front_counts_all.get("DEFESA", 0)), "DEFESA"),
+            ("⚠️", int(front_counts_all.get("CORREÇÃO", 0)), "CORREÇÃO"),
+            ("🚀", int(front_counts_all.get("ATAQUE", 0)), "ATAQUE"),
+            ("🧹", int(front_counts_all.get("LIMPEZA", 0)), "LIMPEZA"),
+            ("⚙️", int(front_counts_all.get("OTIMIZAÇÃO", 0)), "OTIMIZAÇÃO"),
         ]),
         unsafe_allow_html=True
     )
 
     # Âncoras
-    st.markdown(render_report_section("star", "Produtos Âncora", "Os 5 produtos mais relevantes do catálogo", "green"), unsafe_allow_html=True)
-    # ... (tabela de âncoras mantida)
+    st.markdown("#### 🛡️ Produtos Âncora (Top 5)")
+    top5_anchors = anchors.head(5).copy()
+    fat_sum_top5 = float(top5_anchors["Fat total"].sum()) if len(top5_anchors) else 0.0
+    
+    st.markdown(
+        render_kpi_highlight([
+            (br_int(len(anchors)), "Total de Âncoras", "green"),
+            (br_money(fat_sum_top5), "Fat. Top 5", "blue"),
+            (f"{round(len(anchors)/max(total_ads,1)*100, 1)}%", "% do Catálogo", "purple"),
+        ]),
+        unsafe_allow_html=True
+    )
+
+    anchor_cols = ["MLB","Título","Fat total","Qtd total","TM total"]
+    show = ensure_cols(top5_anchors, anchor_cols)
+    show["Fat total"] = show["Fat total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+    show["Qtd total"] = show["Qtd total"].map(br_int)
+    show["TM total"] = show["TM total"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+    st.dataframe(show, use_container_width=True, hide_index=True, height=220)
 
     # Fuga de receita
-    st.markdown(render_report_section("alert-triangle", "Alerta de Fuga de Receita", "Produtos com queda brusca de performance", "rose"), unsafe_allow_html=True)
+    st.markdown("#### ⚠️ Alerta de Fuga de Receita (Top 10)")
+    loss_total = float(drop_alert["Perda estimada"].sum()) if len(drop_alert) else 0.0
+    
+    st.markdown(
+        render_kpi_highlight([
+            (br_int(len(drop_alert)), "Produtos em Fuga", "rose"),
+            (br_money(loss_total), "Perda Estimada", "amber"),
+            (f"{round(len(drop_alert)/max(total_ads,1)*100, 1)}%", "% do Catálogo", "purple"),
+        ]),
+        unsafe_allow_html=True
+    )
+
     if len(drop_alert) > 0:
-        loss_total = float(drop_alert["Perda estimada"].sum()) if "Perda estimada" in drop_alert.columns else 0.0
         st.markdown(
-            render_insight_card("alert-triangle", "Atenção Imediata", 
+            render_insight_card("⚠️", "Atenção Imediata", 
                 f"Você tem {len(drop_alert)} produtos que caíram de curva, representando uma perda estimada de {br_money(loss_total)}. Priorize a correção destes itens."),
             unsafe_allow_html=True
         )
-    # ... (tabela de fuga mantida)
+
+    drop_cols_show = ["MLB","Título","Curva 31-60","Curva 0-30","Perda estimada"]
+    show = ensure_cols(drop_alert.head(10), drop_cols_show)
+    show["Perda estimada"] = show["Perda estimada"].apply(lambda x: br_money(float(x)) if pd.notna(x) else "-")
+    st.dataframe(show, use_container_width=True, hide_index=True, height=350)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Seção 3: Plano Operacional
+    st.markdown(render_report_section("layout", "Plano Operacional", "Distribuição de ações por frente", "green"), unsafe_allow_html=True)
+
+    front_order = ["LIMPEZA", "CORREÇÃO", "ATAQUE", "DEFESA", "OTIMIZAÇÃO"]
+    
+    # Download do plano completo
     op_cols = ["Frente","MLB","Título","Curva 0-30","Fat. 0-30","Ação sugerida","Plano 7 dias","Plano 15 dias","Plano 30 dias"]
     op = ensure_cols(plan, op_cols).copy()
     op = op.sort_values(["Frente", "Fat. 0-30"], ascending=[True, False])
@@ -2562,7 +3281,6 @@ with tab4:
     )
 
     # Tabelas por frente
-    front_order = ["DEFESA", "CORREÇÃO", "ATAQUE", "LIMPEZA", "OTIMIZAÇÃO"]
     for fr in front_order:
         subset = op[op["Frente"] == fr].head(10).copy()
         if len(subset) == 0:

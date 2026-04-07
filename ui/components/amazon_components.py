@@ -3,25 +3,28 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from ui.components.helpers import br_money, pct, to_xlsx_bytes
-from ui.components.shared_ui import render_metric_grid, render_report_section
 
 def render_amazon_buybox_metrics(df_export):
     """Renderiza métricas de Buybox para Amazon."""
     if 'Buy Box %' not in df_export.columns:
         return
 
-    st.markdown(render_report_section("package", "Performance de Buybox", "Análise da Oferta em Destaque por SKU", "blue"), unsafe_allow_html=True)
+    st.markdown("### 📦 Performance de Buybox (Oferta em Destaque)")
     
     # Cálculos
     avg_buybox = df_export['Buy Box %'].mean()
     ganhando = df_export[df_export['Buy Box %'] >= 80]
     perdendo = df_export[df_export['Buy Box %'] < 80]
     
+    pct_ganhando = (len(ganhando) / len(df_export)) * 100 if len(df_export) > 0 else 0
+    pct_perdendo = (len(perdendo) / len(df_export)) * 100 if len(df_export) > 0 else 0
+
     # Cards de Métricas
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
-        ("Média de Buybox", f"{avg_buybox:.1f}%", "package", "blue"),
-        ("Produtos Ganhando (>=80%)", f"{len(ganhando)}", "star", "green"),
-        ("Produtos Perdendo (<80%)", f"{len(perdendo)}", "alert-triangle", "rose")
+        ("Média de Buybox", f"{avg_buybox:.1f}%", "📦", "blue"),
+        ("Produtos Ganhando (>=80%)", f"{len(ganhando)}", "⭐", "green"),
+        ("Produtos Perdendo (<80%)", f"{len(perdendo)}", "⚠️", "rose")
     ])
 
     # Botão de Download do Relatório de Buybox
@@ -55,7 +58,8 @@ def render_amazon_buybox_metrics(df_export):
     # Ordenar por menor Buybox e maior faturamento (prioridade de correção)
     df_buybox_report = df_buybox_report.sort_values(by=['Buy Box %', 'Fat total'], ascending=[True, False])
     
-    # Formatação para o Excel
+    # Formatação para o Excel (to_xlsx_bytes usa nomes de colunas para formatar)
+    # Renomear para nomes que o helper reconhece
     df_buybox_report = df_buybox_report.rename(columns={
         'Buy Box %': 'Taxa Buy Box %',
         'Fat total': 'Faturamento (BRL)',
@@ -87,6 +91,7 @@ def render_amazon_buybox_metrics(df_export):
 
     with col_table:
         st.markdown("#### Top 10 Produtos com Menor Buybox")
+        # Mostrar produtos que estão perdendo e têm relevância
         top_lost = df_export.sort_values(by=['Buy Box %', 'Fat total'], ascending=[True, False]).head(10)
         
         display_df = top_lost[['SKU', 'Título', 'Buy Box %', 'Fat total']].copy()
@@ -100,16 +105,17 @@ def render_amazon_conversion_metrics(df_export):
     if '_amazon_sessions' not in df_export.columns:
         return
 
-    st.markdown(render_report_section("target", "Funil de Conversão", "Comportamento de compra na Amazon", "green"), unsafe_allow_html=True)
+    st.markdown("### 📊 Funil de Conversão (Amazon)")
     
     total_sessions = df_export['_amazon_sessions'].sum()
     total_units = df_export['Qtd total'].sum()
     avg_conv = (total_units / total_sessions * 100) if total_sessions > 0 else 0.0
     
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
-        ("Total de Sessões", f"{int(total_sessions):,}", "activity", "blue"),
-        ("Unidades Pedidas", f"{int(total_units):,}", "package", "amber"),
-        ("Taxa de Conversão Média", f"{avg_conv:.2f}%", "target", "green")
+        ("Total de Sessões", f"{int(total_sessions):,}", "👥", "blue"),
+        ("Unidades Pedidas", f"{int(total_units):,}", "📦", "amber"),
+        ("Taxa de Conversão Média", f"{avg_conv:.2f}%", "🎯", "green")
     ])
 
     # Gráfico de Funil
@@ -127,15 +133,16 @@ def render_amazon_engagement_metrics(df_export):
     if '_amazon_page_views' not in df_export.columns:
         return
 
-    st.markdown(render_report_section("trending-up", "Engajamento e Tráfego", "Visualizações e comportamento por sessão", "purple"), unsafe_allow_html=True)
+    st.markdown("### 📈 Engajamento e Tráfego")
     
     total_pv = df_export['_amazon_page_views'].sum()
     total_sessions = df_export['_amazon_sessions'].sum() if '_amazon_sessions' in df_export.columns else 0
     pv_per_session = (total_pv / total_sessions) if total_sessions > 0 else 0
     
+    from ui.components.shared_ui import render_metric_grid
     render_metric_grid([
-        ("Visualizações de Página", f"{int(total_pv):,}", "search", "blue"),
-        ("Páginas / Sessão", f"{pv_per_session:.2f}", "bar-chart-3", "purple")
+        ("Visualizações de Página", f"{int(total_pv):,}", "👀", "blue"),
+        ("Páginas / Sessão", f"{pv_per_session:.2f}", "📈", "purple")
     ])
 
     # Top 10 Produtos por Sessões

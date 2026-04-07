@@ -17,9 +17,7 @@ def get_svg_icon(name: str):
         "lightbulb": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>',
         "search": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>',
         "layout": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></svg>',
-        "alert-triangle": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
-        "alert-circle": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12" y1="16" y2="16"/></svg>',
-        "check-circle": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+        "alert-triangle": '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>'
     }
     return icons.get(name, icons["activity"])
 
@@ -52,24 +50,11 @@ def render_metric_grid(metrics: list):
             "🛒": "package",
             "📉": "trending-up",
             "👀": "search",
+            "🎯": "target",
             "👥": "activity",
-            "⚠️": "alert-triangle",
-            "alert-circle": "alert-circle",
-            "alert-triangle": "alert-triangle",
-            "trending-up": "trending-up",
-            "check-circle": "check-circle",
-            "package": "package",
-            "dollar-sign": "dollar-sign",
-            "bar-chart-3": "bar-chart-3",
-            "target": "target",
-            "search": "search",
-            "activity": "activity"
+            "⚠️": "activity"
         }
-        icon_name = icon_map.get(icon, icon if icon in get_svg_icon.__closure__[0].cell_contents.keys() else "activity") if hasattr(get_svg_icon, "__closure__") and get_svg_icon.__closure__ else icon_map.get(icon, icon)
-        # Fallback manual se o closure não funcionar
-        if icon_name not in ["package", "dollar-sign", "bar-chart-3", "target", "trending-up", "star", "banknote", "award", "calendar", "truck", "activity", "megaphone", "lightbulb", "search", "layout", "alert-triangle", "alert-circle", "check-circle"]:
-            icon_name = "activity"
-            
+        icon_name = icon_map.get(icon, "activity")
         svg = get_svg_icon(icon_name)
         html += f"""
 <div class='metric-card'>
@@ -90,10 +75,9 @@ def render_report_section(icon: str, title: str, desc: str, color: str = "purple
         "⚠️": "alert-triangle",
         "layout": "layout",
         "search": "search",
-        "package": "package",
-        "alert-triangle": "alert-triangle"
+        "package": "package"
     }
-    icon_name = icon_map.get(icon, icon if icon in ["layout", "search", "package", "alert-triangle"] else "layout")
+    icon_name = icon_map.get(icon, "layout")
     svg = get_svg_icon(icon_name)
     return f"""
 <div class='report-section'>
