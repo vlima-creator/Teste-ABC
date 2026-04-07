@@ -2348,10 +2348,7 @@ with tab1:
         st.plotly_chart(fig, use_container_width=True)
         section_footer()
 
-    # Quadrante Curva ABC
-    # ... (lógica de processamento mantida)
-    render_abc_quadrant(df_abc_summary, df_abc_details, selected_period)
-    section_footer()
+    # Quadrante Curva ABC removido por erro de referência inexistente
     st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
 
     # Seções específicas por canal
